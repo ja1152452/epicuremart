@@ -2111,11 +2111,15 @@ def rider_dashboard():
     
     user_id = session['user_id']
     
-    # Orders ready for rider pickup from courier
+    # Show available orders to pickup
     available_orders = Order.query.filter_by(status='IN_TRANSIT_TO_RIDER', rider_id=None)\
         .order_by(Order.created_at.desc()).all()
     
-    # Orders assigned to this rider
+    # Calculate potential earnings for available orders
+    for order in available_orders:
+        order.potential_earnings = order.delivery_fee * Decimal('0.4')
+    
+    # Show assigned orders
     my_orders = Order.query.filter_by(rider_id=user_id)\
         .filter(Order.status.in_(['OUT_FOR_DELIVERY']))\
         .order_by(Order.created_at.desc()).all()
@@ -2136,8 +2140,8 @@ def rider_dashboard():
     total_delivery_fees = db.session.query(func.sum(Order.delivery_fee))\
         .filter(Order.rider_id == user_id, Order.status == 'DELIVERED').scalar() or Decimal('0')
     
-    # Rider gets 40% of delivery fees
-    rider_commission = total_delivery_fees * Decimal('0.60')  # Platform keeps 60% (or shares with courier)
+    # Rider gets 40% of delivery fees (courier gets 60%)
+    rider_commission = total_delivery_fees * Decimal('0.60')  # This is courier's share
     available_to_withdraw = total_earnings  # Already calculated as 40% of delivery fees
     
     return render_template('rider_dashboard.html',

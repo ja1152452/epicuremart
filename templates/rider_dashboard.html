@@ -191,7 +191,7 @@
                             <td>{{ order.courier.full_name if order.courier else 'N/A' }}</td>
                             <td>{{ order.delivery_address.city }}</td>
                             <td>₱{{ "%.2f"|format(order.delivery_fee) }}</td>
-                            <td class="text-success">₱{{ "%.2f"|format(order.delivery_fee * 0.4) }}</td>
+                            <<td class="text-success">₱{{ "%.2f"|format((order.delivery_fee|float) * 0.4) }}</td>
                             <td><span class="badge bg-info">{{ order.status.replace('_', ' ') }}</span></td>
                         </tr>
                         {% endfor %}

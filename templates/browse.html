@@ -185,7 +185,7 @@
                         
                         <div class="mb-3">
                             <span class="badge badge-category-modern">
-                                <i class="fas fa-tag me-1"></i>{{ product.category.name.split('&')[0].strip() }}
+                                <i class="fas fa-tag me-1"></i>{{ product.category.name.split('&')[0].strip() if product.category else 'Uncategorized' }}
                             </span>
                         </div>
                         
