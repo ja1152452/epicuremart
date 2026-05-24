@@ -612,28 +612,36 @@ def log_action(action, entity_type=None, entity_id=None, details=None):
 def _send_email_task(app, to, subject, body):
     """Runs in background thread — never call directly"""
     with app.app_context():
-        import smtplib
-        import ssl
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
+        import urllib.request
+        import json
 
-        gmail_user = app.config.get('MAIL_USERNAME')
-        gmail_pass = app.config.get('MAIL_PASSWORD')
+        brevo_api_key = os.environ.get('BREVO_API_KEY')
+        if not brevo_api_key:
+            print(f"[ERROR] BREVO_API_KEY not set")
+            return
 
         try:
-            msg = MIMEMultipart()
-            msg['From'] = gmail_user
-            msg['To'] = to
-            msg['Subject'] = subject
-            msg.attach(MIMEText(body, 'plain'))
+            payload = json.dumps({
+                'sender': {'name': 'Epicuremart', 'email': 'jayzelyasona23@gmail.com'},
+                'to': [{'email': to}],
+                'subject': subject,
+                'textContent': body
+            }).encode('utf-8')
 
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
-                server.login(gmail_user, gmail_pass)
-                server.sendmail(gmail_user, to, msg.as_string())
-            print(f"[SUCCESS] Email sent via Gmail SMTP_SSL to {to}")
+            req = urllib.request.Request(
+                'https://api.brevo.com/v3/smtp/email',
+                data=payload,
+                headers={
+                    'accept': 'application/json',
+                    'api-key': brevo_api_key,
+                    'content-type': 'application/json'
+                },
+                method='POST'
+            )
+            with urllib.request.urlopen(req) as response:
+                print(f"[SUCCESS] Email sent via Brevo to {to}")
         except Exception:
-            logging.exception("[ERROR] Failed to send email to %s", to)
+            logging.exception("[ERROR] Failed to send email via Brevo to %s", to)
 
 
 def send_email(to, subject, body):
