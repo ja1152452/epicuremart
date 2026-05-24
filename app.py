@@ -57,9 +57,9 @@ app.config['DELIVERY_INTER_ISLAND_FEE'] = app_delivery_inter_island_fee
 
 # Flask-Mail Configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'jayzelyasona23@gmail.com'
 app.config['MAIL_PASSWORD'] = 'eqdllipjbwnkucwa'
 app.config['MAIL_DEFAULT_SENDER'] = ('Epicuremart', 'jayzelyasona23@gmail.com')
@@ -612,22 +612,38 @@ def log_action(action, entity_type=None, entity_id=None, details=None):
 def _send_email_task(app, to, subject, body):
     """Runs in background thread — never call directly"""
     with app.app_context():
-        try:
-            msg = MailMessage(
-                subject=subject,
-                recipients=[to],
-                body=body,
-                sender=app.config['MAIL_DEFAULT_SENDER']
-            )
-            mail.send(msg)
-            print(f"[SUCCESS] Email sent successfully to {to}")
-        except Exception:
-            logging.exception("[ERROR] Failed to send email to %s", to)
+        resend_api_key = os.environ.get('RESEND_API_KEY')
+        if resend_api_key:
+            # Use Resend API (works on Render free tier)
+            try:
+                import resend
+                resend.api_key = resend_api_key
+                resend.Emails.send({
+                    'from': 'Epicuremart <onboarding@resend.dev>',
+                    'to': [to],
+                    'subject': subject,
+                    'text': body,
+                })
+                print(f"[SUCCESS] Email sent via Resend to {to}")
+            except Exception:
+                logging.exception("[ERROR] Failed to send email via Resend to %s", to)
+        else:
+            # Fallback: Flask-Mail
+            try:
+                msg = MailMessage(
+                    subject=subject,
+                    recipients=[to],
+                    body=body,
+                    sender=app.config['MAIL_DEFAULT_SENDER']
+                )
+                mail.send(msg)
+                print(f"[SUCCESS] Email sent via Flask-Mail to {to}")
+            except Exception:
+                logging.exception("[ERROR] Failed to send email via Flask-Mail to %s", to)
 
 
 def send_email(to, subject, body):
     """Dispatch email in background thread — returns immediately"""
-    # Siguraduhin na ang _mail_executor.submit ay may eksaktong 4 na spaces bago ito
     _mail_executor.submit(_send_email_task, app, to, subject, body)
     return True
 
