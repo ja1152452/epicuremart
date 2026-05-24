@@ -1,1 +1,183 @@
+<style>
+    .admin-sidebar {
+        width: 240px;
+        min-height: calc(100vh - 70px);
+        background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+        position: fixed;
+        top: 70px;
+        left: 0;
+        z-index: 100;
+        padding: 1.5rem 0;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
+    }
 
+    .admin-sidebar .sidebar-brand {
+        padding: 0 1.5rem 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 1rem;
+    }
+
+    .admin-sidebar .sidebar-brand span {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .admin-sidebar .nav-item a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+    }
+
+    .admin-sidebar .nav-item a:hover {
+        background: rgba(255,255,255,0.08);
+        color: white;
+        border-left-color: rgba(255,255,255,0.4);
+    }
+
+    .admin-sidebar .nav-item a.active {
+        background: rgba(108, 99, 255, 0.3);
+        color: white;
+        border-left-color: #6C63FF;
+    }
+
+    .admin-sidebar .nav-item a i {
+        width: 18px;
+        text-align: center;
+        font-size: 0.95rem;
+    }
+
+    .admin-main-content {
+        margin-left: 240px;
+        min-height: calc(100vh - 70px);
+        transition: margin-left 0.3s ease;
+    }
+
+    .sidebar-toggle {
+        display: none;
+        position: fixed;
+        top: 80px;
+        left: 10px;
+        z-index: 200;
+        background: #312e81;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    footer {
+        margin-left: 240px;
+        transition: margin-left 0.3s ease;
+    }
+
+    /* Flash messages container */
+    body > .container.mt-3 {
+        margin-left: 240px;
+        transition: margin-left 0.3s ease;
+    }
+
+    @media (max-width: 992px) {
+        .admin-sidebar {
+            transform: translateX(-100%);
+        }
+        .admin-sidebar.open {
+            transform: translateX(0);
+        }
+        .admin-main-content {
+            margin-left: 0;
+        }
+        footer {
+            margin-left: 0;
+        }
+        body > .container.mt-3 {
+            margin-left: 0;
+        }
+        .sidebar-toggle {
+            display: flex;
+        }
+    }
+</style>
+
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+
+<div class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+        <span>Admin Panel</span>
+    </div>
+    <nav>
+        <ul class="list-unstyled mb-0">
+            <li class="nav-item">
+                <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin_dashboard' else '' }}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin_approvals') }}" class="{{ 'active' if request.endpoint == 'admin_approvals' else '' }}">
+                    <i class="fas fa-user-check"></i> Approvals
+                    {% if pending_approvals is defined and pending_approvals > 0 %}
+                    <span class="badge bg-danger rounded-pill ms-auto">{{ pending_approvals }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin_users') }}" class="{{ 'active' if request.endpoint == 'admin_users' else '' }}">
+                    <i class="fas fa-users"></i> Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin_categories') }}" class="{{ 'active' if request.endpoint == 'admin_categories' else '' }}">
+                    <i class="fas fa-tags"></i> Categories
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin_delivery_fees') }}" class="{{ 'active' if request.endpoint == 'admin_delivery_fees' else '' }}">
+                    <i class="fas fa-truck"></i> Delivery Fees
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin_orders') }}" class="{{ 'active' if request.endpoint == 'admin_orders' else '' }}">
+                    <i class="fas fa-receipt"></i> Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin_analytics') }}" class="{{ 'active' if request.endpoint == 'admin_analytics' else '' }}">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin_support_conversations') }}" class="{{ 'active' if request.endpoint == 'admin_support_conversations' else '' }}">
+                    <i class="fas fa-headset"></i> Support
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('admin_logs') }}" class="{{ 'active' if request.endpoint == 'admin_logs' else '' }}">
+                    <i class="fas fa-file-alt"></i> Audit Logs
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+function toggleSidebar() {
+    document.getElementById('adminSidebar').classList.toggle('open');
+}
+</script>
