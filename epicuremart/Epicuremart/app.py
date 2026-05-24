@@ -7125,4 +7125,6 @@ def api_register():
 
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    # Kukunin nito ang PORT mula sa Railway, o gagamit ng 8080 kung wala
+    port = int(os.environ.get("PORT", 8080))
+    app.run(debug=False, host='0.0.0.0', port=port)
