@@ -613,6 +613,7 @@ def _send_email_task(app, to, subject, body):
     """Runs in background thread — never call directly"""
     with app.app_context():
         resend_api_key = os.environ.get('RESEND_API_KEY')
+        print(f"[EMAIL DEBUG] RESEND_API_KEY set: {bool(resend_api_key)}, sending to: {to}")
         if resend_api_key:
             # Use Resend API (works on Render free tier)
             try:
