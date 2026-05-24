@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-history"></i> Delivery History</h2>
+
+    {% if orders %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Delivery Address</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Delivered On</th>
+                            <th>Proof</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><strong>{{ order.order_number }}</strong></td>
+                            <td>{{ order.customer.full_name }}</td>
+                            <td>{{ order.delivery_address.city }}</td>
+                            <td>₱{{ "%.2f"|format(order.total_amount) }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if order.status == 'DELIVERED' %}bg-success
+                                    {% elif order.status == 'OUT_FOR_DELIVERY' %}bg-primary
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ order.status.replace('_', ' ') }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if order.status == 'DELIVERED' %}
+                                    {{ order.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                    In progress
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if order.proof_of_delivery %}
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#proofModal{{ order.id }}">
+                                    <i class="fas fa-image"></i> View
+                                </button>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Statistics -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ orders|selectattr('status', 'equalto', 'DELIVERED')|list|length }}</h3>
+                            <p class="mb-0">Completed Deliveries</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ orders|selectattr('status', 'equalto', 'OUT_FOR_DELIVERY')|list|length }}</h3>
+                            <p class="mb-0">In Progress</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h3>₱{{ "%.2f"|format(orders|selectattr('status', 'equalto', 'DELIVERED')|safe_sum(attribute='total_amount')) }}</h3>
+                            <p class="mb-0">Total Delivered</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No delivery history yet. Start accepting deliveries to build your history!
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('rider_dashboard') }}" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Proof of Delivery Modals -->
+{% for order in orders %}
+{% if order.proof_of_delivery %}
+<div class="modal fade" id="proofModal{{ order.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Proof of Delivery - Order {{ order.order_number }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="{{ url_for('static', filename='uploads/' + order.proof_of_delivery) }}" 
+                     class="img-fluid" 
+                     alt="Proof of Delivery">
+                <div class="mt-3">
+                    <p class="mb-1"><strong>Delivered to:</strong> {{ order.customer.full_name }}</p>
+                    <p class="mb-0"><strong>Date:</strong> {{ order.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

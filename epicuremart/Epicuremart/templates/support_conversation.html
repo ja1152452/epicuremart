@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+
+{% block title %}Support Chat - Epicuremart{% endblock %}
+
+{% block content %}
+<style>
+    .chat-container {
+        max-width: 900px;
+        margin: 2rem auto 5rem;
+        min-height: calc(100vh - 180px);
+        padding-bottom: 1rem;
+        box-sizing: border-box;
+    }
+    
+    @media (max-width: 768px) {
+        .chat-container {
+            margin: 1rem 1rem 4rem;
+            min-height: calc(100vh - 160px);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .chat-container {
+            margin: 0.75rem 0.75rem 4rem;
+            min-height: calc(100vh - 140px);
+        }
+    }
+    
+    .chat-card {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        border: none;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem;
+        border: none;
+        flex-shrink: 0;
+    }
+    
+    @media (max-width: 576px) {
+        .chat-header {
+            padding: 1rem;
+        }
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+        animation: pulse 2s infinite;
+    }
+    
+    .status-online {
+        background: #10b981;
+    }
+    
+    .status-offline {
+        background: #6b7280;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .chat-messages {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+        position: relative;
+    }
+    
+    @media (max-width: 768px) {
+        .chat-messages {
+            padding: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .chat-messages {
+            padding: 0.75rem;
+        }
+    }
+    
+    .chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-track {
+        background: #e5e7eb;
+        border-radius: 4px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+    }
+    
+    .message-wrapper {
+        margin-bottom: 1.5rem;
+        display: flex;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .message-wrapper.sent {
+        justify-content: flex-end;
+    }
+    
+    .message-bubble {
+        max-width: 70%;
+        padding: 1rem 1.25rem;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+    }
+    
+    .message-bubble.sent {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .message-bubble.received {
+        background: white;
+        color: #1a202c;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .message-sender {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+    }
+    
+    .message-text {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message-time {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .agent-badge {
+        display: inline-block;
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        margin-left: 6px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6b7280;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+    
+    .chat-input-area {
+        padding: 1.25rem;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        flex-shrink: 0;
+    }
+    
+    @media (max-width: 576px) {
+        .chat-input-area {
+            padding: 0.75rem;
+        }
+    }
+    
+    .input-wrapper {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+    }
+    
+    .message-input {
+        flex: 1;
+        border: 2px solid #e5e7eb;
+        border-radius: 24px;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        resize: none;
+        max-height: 120px;
+    }
+    
+    .message-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .send-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+    
+    .send-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .send-button:active {
+        transform: scale(0.95);
+    }
+    
+    .back-button {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    .back-button:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+    
+    .typing-indicator {
+        display: none;
+        padding: 1rem;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .typing-indicator.active {
+        display: flex;
+    }
+    
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #6b7280;
+        animation: bounce 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+</style>
+
+<div class="chat-container">
+    {% if is_admin %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fas fa-user-shield"></i> <strong>Admin View:</strong> You are viewing this conversation as an administrator. You can view all messages and participate if needed.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endif %}
+    
+    <div class="card chat-card">
+        <div class="chat-header">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="user-info flex-grow-1">
+                    <div class="user-avatar">
+                        {{ (other_user.full_name or other_user.email)[0].upper() }}
+                    </div>
+                    <div>
+                        <h5 class="mb-1 text-white">
+                            {{ other_user.full_name or other_user.email }}
+                            {% if other_user.is_support_agent %}
+                            <span class="agent-badge">Support Agent</span>
+                            {% endif %}
+                        </h5>
+                        <small class="text-white-50">
+                            {% if other_user.is_support_agent %}
+                                {% if other_user.last_activity and (now() - other_user.last_activity).total_seconds() < 300 %}
+                                <span class="status-indicator status-online"></span>Online
+                                {% else %}
+                                <span class="status-indicator status-offline"></span>Offline
+                                {% endif %}
+                            {% else %}
+                                {{ other_user.role|title }}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div class="ml-auto">
+                    <a href="{{ url_for('support_dashboard') }}" class="back-button">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="messageContainer">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="message-wrapper {% if message.sender_id == session.user_id %}sent{% endif %}" id="message-{{ message.id }}">
+                    <div class="message-bubble {% if message.sender_id == session.user_id %}sent{% else %}received{% endif %}">
+                        <div class="message-sender">
+                            {% if message.sender_id == session.user_id %}
+                            You
+                            {% else %}
+                            {{ message.sender.full_name or message.sender.email }}
+                            {% if message.sender.is_support_agent %}
+                            <span class="agent-badge">Agent</span>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="message-text">{{ message.message_text }}</div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i>
+                            {{ message.created_at.strftime('%b %d, %I:%M %p') }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="typing-indicator" id="typingIndicator">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <h5>No messages yet</h5>
+                <p>Start the conversation by sending a message below</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="chat-input-area">
+            <form id="messageForm" method="POST" action="{{ url_for('send_support_message', conversation_id=conversation.id) }}">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        name="message_text" 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Type your message..." 
+                        required 
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-scroll to bottom
+function scrollToBottom(smooth = true) {
+    var container = document.getElementById('messageContainer');
+    if (container) {
+        if (smooth) {
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: 'smooth'
+            });
+        } else {
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+}
+
+// Scroll to bottom on page load (immediate)
+setTimeout(() => scrollToBottom(false), 100);
+
+// Scroll after images load
+window.addEventListener('load', function() {
+    setTimeout(() => scrollToBottom(false), 100);
+});
+
+// Handle form submission
+document.getElementById('messageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var form = this;
+    var messageInput = document.getElementById('messageInput');
+    var messageText = messageInput.value.trim();
+    
+    if (!messageText) return;
+    
+    // Disable input while sending
+    messageInput.disabled = true;
+    
+    var formData = new FormData(form);
+    formData.set('message_text', messageText);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageInput.value = '';
+            messageInput.disabled = false;
+            messageInput.focus();
+            // Reload messages
+            location.reload();
+        } else {
+            alert('Failed to send message: ' + (data.error || 'Unknown error'));
+            messageInput.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to send message. Please try again.');
+        messageInput.disabled = false;
+    });
+});
+
+// Auto-expand textarea
+document.getElementById('messageInput').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// Auto-refresh every 5 seconds to check for new messages
+let isChecking = false;
+setInterval(function() {
+    if (isChecking) return;
+    
+    isChecking = true;
+    var lastMessageId = 0;
+    var messages = document.querySelectorAll('[id^="message-"]');
+    if (messages.length > 0) {
+        var lastMessage = messages[messages.length - 1];
+        lastMessageId = parseInt(lastMessage.id.split('-')[1]);
+    }
+    
+    fetch('{{ url_for("check_new_messages", conversation_id=conversation.id) }}?last_id=' + lastMessageId)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.messages.length > 0) {
+            // Show typing indicator briefly before reload
+            document.getElementById('typingIndicator').classList.add('active');
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        }
+        isChecking = false;
+    })
+    .catch(error => {
+        console.error('Error checking for new messages:', error);
+        isChecking = false;
+    });
+}, 5000);
+
+// Enter to send, Shift+Enter for new line
+document.getElementById('messageInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('messageForm').requestSubmit();
+    }
+});
+</script>
+{% endblock %}

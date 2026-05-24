@@ -1,0 +1,141 @@
+{% extends "base.html" %} {% block title %}Manage Support Agents - Epicuremart{%
+endblock %} {% block content %}
+<div class="container my-4">
+  <h2 class="mb-4"><i class="fas fa-user-shield"></i> Manage Support Agents</h2>
+
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    <strong>Requirements for Support Agents:</strong> Users must be verified,
+    approved, and not suspended to be assigned as support agents.
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-check-circle"></i> Active Support Agents
+          </h5>
+        </div>
+        <div class="card-body">
+          {% if support_agents %}
+          <div class="list-group">
+            {% for agent in support_agents %}
+            <div
+              class="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <strong>{{ agent.full_name or agent.email }}</strong>
+                <br />
+                <small class="text-muted">{{ agent.email }}</small>
+                <br />
+                <span class="badge badge-info">{{ agent.role|title }}</span>
+                {% if agent.is_verified %}
+                <span class="badge badge-success">Verified</span>
+                {% else %}
+                <span class="badge badge-warning">Not Verified</span>
+                {% endif %} {% if agent.last_activity and (now -
+                agent.last_activity).total_seconds() < 300 %}
+                <span class="badge badge-success">Online</span>
+                {% else %}
+                <span class="badge badge-secondary">Offline</span>
+                {% endif %}
+              </div>
+              <form
+                method="POST"
+                action="{{ url_for('toggle_support_agent', user_id=agent.id) }}"
+                style="display: inline"
+              >
+                <button
+                  type="submit"
+                  class="btn btn-sm btn-danger"
+                  onclick="return confirm('Remove support agent access for {{ agent.full_name or agent.email }}?')"
+                >
+                  <i class="fas fa-times"></i> Remove
+                </button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted">No support agents assigned yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-user-plus"></i> Add Support Agent
+          </h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">
+            Select verified and approved users to grant support agent access:
+          </p>
+          <div class="list-group" style="max-height: 400px; overflow-y: auto">
+            {% for user in all_users %} {% if not user.is_support_agent %}
+            <div
+              class="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <strong>{{ user.full_name or user.email }}</strong>
+                <br />
+                <small class="text-muted">{{ user.email }}</small>
+                <br />
+                <span class="badge badge-info">{{ user.role|title }}</span>
+                {% if not user.is_verified %}
+                <span class="badge badge-warning">Not Verified</span>
+                {% endif %} {% if not user.is_approved %}
+                <span class="badge badge-warning">Not Approved</span>
+                {% endif %} {% if user.is_suspended %}
+                <span class="badge badge-danger">Suspended</span>
+                {% endif %}
+              </div>
+              <form
+                method="POST"
+                action="{{ url_for('toggle_support_agent', user_id=user.id) }}"
+                style="display: inline"
+              >
+                {% if user.is_verified and user.is_approved and not
+                user.is_suspended %}
+                <button type="submit" class="btn btn-sm btn-success">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+                {% else %}
+                <button
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  disabled
+                  title="User must be verified, approved, and not suspended"
+                >
+                  <i class="fas fa-ban"></i> Ineligible
+                </button>
+                {% endif %}
+              </form>
+            </div>
+            {% endif %} {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{{ url_for('admin_support_conversations') }}" class="btn btn-info">
+      <i class="fas fa-comments"></i> View All Support Conversations
+    </a>
+    <a href="{{ url_for('support_dashboard') }}" class="btn btn-secondary">
+      <i class="fas fa-headset"></i> Go to Support Dashboard
+    </a>
+    <a
+      href="{{ url_for('admin_dashboard') }}"
+      class="btn btn-outline-secondary"
+    >
+      <i class="fas fa-arrow-left"></i> Back to Admin Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

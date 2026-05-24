@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            {% include 'components/qr_scanner.html' ignore missing %}
+        </div>
+    </div>
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('rider_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+<div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-qrcode fa-3x text-primary"></i><br>
+                        Scan Courier's QR Code
+                    </h2>
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label">Enter QR Token</label>
+                            <textarea name="token" class="form-control" rows="4" 
+                                placeholder="Paste the QR token here or use a QR scanner" required></textarea>
+                            <small class="form-text text-muted">
+                                Scan the QR code shown by the courier to receive the package
+                            </small>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="fas fa-check"></i> Receive Package
+                        </button>
+                    </form>
+                    <a href="{{ url_for('rider_dashboard') }}" class="btn btn-link w-100 mt-3">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

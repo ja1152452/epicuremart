@@ -1,0 +1,774 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Enhanced Header with Search -->
+    <div class="mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-4 col-md-6 mb-3 mb-lg-0">
+                <h1 class="display-6 fw-bold mb-2">Browse Products</h1>
+                <p class="text-muted mb-0">{{ products|length if products else 0 }} products found</p>
+            </div>
+            <div class="col-lg-8 col-md-6">
+                <form method="GET" class="search-form-enhanced">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" 
+                               name="search" 
+                               class="form-control border-start-0 ps-0" 
+                               placeholder="Search by product name, description, or shop..." 
+                               value="{{ request.args.get('search', '') }}">
+                        {% if request.args.get('category') %}
+                        <input type="hidden" name="category" value="{{ request.args.get('category') }}">
+                        {% endif %}
+                        <button class="btn btn-primary px-4" type="submit">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="filters-sidebar sticky-top" style="top: 100px;">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-filter me-2 text-primary"></i>Filters
+                        </h5>
+                        
+                        <!-- Category Filter -->
+                        <div class="filter-section mb-4">
+                            <h6 class="fw-semibold mb-3 text-uppercase small">Categories</h6>
+                            <div class="category-filters">
+                                <a href="{{ url_for('browse', search=request.args.get('search', '')) }}" 
+                                   class="category-filter-item {% if not request.args.get('category') %}active{% endif %}">
+                                    <i class="fas fa-th me-2"></i>All Products
+                                </a>
+                                {% for category in categories %}
+                                <a href="{{ url_for('browse', category=category.id, search=request.args.get('search', '')) }}" 
+                                   class="category-filter-item {% if request.args.get('category')|int == category.id %}active{% endif %}">
+                                    {{ category.name.split('&')[0].strip() }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Sort Options -->
+                        <div class="filter-section mb-4">
+                            <h6 class="fw-semibold mb-3 text-uppercase small">Sort By</h6>
+                            <select class="form-select" id="sortSelect" onchange="applySorting(this.value)">
+                                <option value="">Default</option>
+                                <option value="price_asc">Price: Low to High</option>
+                                <option value="price_desc">Price: High to Low</option>
+                                <option value="name_asc">Name: A to Z</option>
+                                <option value="name_desc">Name: Z to A</option>
+                                <option value="stock_desc">Stock: High to Low</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Stock Filter -->
+                        <div class="filter-section mb-3">
+                            <h6 class="fw-semibold mb-3 text-uppercase small">Availability</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="inStockOnly" onchange="filterProducts()">
+                                <label class="form-check-label" for="inStockOnly">
+                                    <i class="fas fa-box-open text-success me-1"></i> In Stock Only
+                                </label>
+                            </div>
+                        </div>
+                        
+                        {% if request.args.get('search') or request.args.get('category') %}
+                        <a href="{{ url_for('browse') }}" class="btn btn-outline-secondary btn-sm w-100">
+                            <i class="fas fa-times me-2"></i>Clear Filters
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+
+            <!-- View Toggle and Sort -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-primary active" id="gridViewBtn" onclick="toggleView('grid')">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" id="listViewBtn" onclick="toggleView('list')">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+                <div class="text-muted small">
+                    Showing <strong id="productCount">{{ products|length if products else 0 }}</strong> products
+                </div>
+            </div>
+            
+            <!-- Products Grid -->
+            <div class="row g-4" id="productsGrid">
+                {% if products %}
+                {% for product in products %}
+                <div class="col-sm-6 col-lg-4 col-xl-3 product-item scroll-reveal-browse" data-price="{{ product.price }}" data-name="{{ product.name }}" data-stock="{{ product.stock }}">
+                    <div class="card product-card-browse h-100 border-0">
+                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none position-relative">
+                            <div class="product-image-container">
+                                {% if product.image %}
+                                <img src="{% if product.image.startswith('http') %}{{ product.image }}{% else %}{{ url_for('static', filename='uploads/' + product.image) }}{% endif %}" 
+                                     class="product-image-browse" alt="{{ product.name }}">
+                                <div class="product-hover-overlay">
+                                    <div class="hover-icon">
+                                        <i class="fas fa-search-plus"></i>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="product-image-browse d-flex align-items-center justify-content-center" 
+                                     style="background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);">
+                                    <i class="fas fa-image fa-3x text-secondary opacity-25"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </a>
+                        
+                        <div class="product-badges-overlay">
+                            {% if product.stock == 0 %}
+                            <span class="badge badge-modern-dark">Out of Stock</span>
+                            {% elif product.stock < 10 %}
+                            <span class="badge badge-modern-warning">
+                                <i class="fas fa-fire me-1"></i>{{ product.stock }} left!
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Color-coded availability indicator -->
+                        <div class="availability-indicator {% if product.stock > 10 %}indicator-green{% elif product.stock > 0 %}indicator-yellow{% else %}indicator-red{% endif %}"></div>
+                    
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2">
+                            <small class="text-muted fw-semibold">
+                                <i class="fas fa-store me-1"></i>{{ product.shop.name }}
+                            </small>
+                        </div>
+                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none text-dark">
+                            <h5 class="card-title fw-bold mb-2 product-name-browse">{{ product.name }}</h5>
+                        </a>
+                        
+                        <!-- Rating Display -->
+                        {% set reviews = product.reviews %}
+                        {% if reviews %}
+                            {% set avg_rating = (reviews|sum(attribute='rating')) / (reviews|length) %}
+                            <div class="mb-2 rating-display">
+                                <small>
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= avg_rating %}
+                                        <i class="fas fa-star rating-star"></i>
+                                        {% elif i - 0.5 <= avg_rating %}
+                                        <i class="fas fa-star-half-alt rating-star"></i>
+                                        {% else %}
+                                        <i class="far fa-star rating-star-empty"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="text-muted ms-1">({{ reviews|length }})</span>
+                                </small>
+                            </div>
+                        {% endif %}
+                        
+                        <p class="card-text text-muted small mb-3 product-desc-browse">
+                            {{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}
+                        </p>
+                        
+                        <div class="mb-3">
+                            <span class="badge badge-category-modern">
+                                <i class="fas fa-tag me-1"></i>{{ product.category.name.split('&')[0].strip() }}
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="price-modern">₱{{ "%.2f"|format(product.price) }}</span>
+                            <span class="badge stock-indicator-badge {% if product.stock > 10 %}bg-success-soft{% elif product.stock > 0 %}bg-warning-soft{% else %}bg-secondary{% endif %}">
+                                <i class="fas fa-box me-1"></i>{{ product.stock }}
+                            </span>
+                        </div>
+                        
+                        {% if session.user_id and session.role == 'customer' %}
+                            {% if product.stock > 0 %}
+                            <div class="product-actions-group">
+                                <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}" class="flex-grow-1">
+                                    <div class="qty-add-wrapper">
+                                        <div class="qty-selector-browse">
+                                            <button type="button" class="qty-btn-browse" onclick="decrementQty(this)">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" name="quantity" class="qty-input-browse" 
+                                                   value="1" min="1" max="{{ product.stock }}" readonly>
+                                            <button type="button" class="qty-btn-browse" onclick="incrementQty(this, {{ product.stock }})">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <button type="submit" class="btn-cart-modern">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                                   class="btn-view-modern" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                            {% else %}
+                            <button class="btn btn-secondary w-100 btn-sm" disabled>
+                                <i class="fas fa-times-circle me-1"></i>Out of Stock
+                            </button>
+                            {% endif %}
+                        {% else %}
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                            <a href="{{ url_for('login') }}" class="btn btn-primary-modern btn-sm">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login to Buy
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+                {% endfor %}
+                {% else %}
+                <div class="col-12">
+                    <div class="card text-center p-5 border-0 shadow-sm">
+                        <i class="fas fa-search fa-4x text-muted mb-3 opacity-50"></i>
+                        <h3 class="fw-bold mb-3">No Products Found</h3>
+                        <p class="text-muted mb-4">Try adjusting your search or browse all categories</p>
+                        <a href="{{ url_for('browse') }}" class="btn btn-primary">
+                            <i class="fas fa-th me-2"></i>View All Products
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Enhanced Search Form */
+    .search-form-enhanced .input-group-text {
+        border-right: none;
+    }
+    
+    .search-form-enhanced .form-control:focus {
+        border-color: #dee2e6;
+        box-shadow: none;
+    }
+    
+    /* Filters Sidebar */
+    .filters-sidebar {
+        animation: slideInLeft 0.4s ease;
+    }
+    
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .filter-section {
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 1rem;
+    }
+    
+    .filter-section:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .category-filters {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .category-filter-item {
+        display: flex;
+        align-items: center;
+        padding: 0.625rem 0.75rem;
+        border-radius: 0.5rem;
+        color: #475569;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .category-filter-item:hover {
+        background: #f1f5f9;
+        color: var(--primary);
+        transform: translateX(5px);
+    }
+    
+    .category-filter-item.active {
+        background: var(--gradient-primary);
+        color: white;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+    
+    /* Quantity Controls */
+    .qty-input {
+        width: 50px;
+        pointer-events: none;
+    }
+    
+    /* Product Card Enhancements */
+    .product-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .product-card:hover {
+        transform: translateY(-8px) scale(1.02);
+    }
+    
+    /* View Toggle Buttons */
+    #gridViewBtn.active,
+    #listViewBtn.active {
+        background: var(--gradient-primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    /* ===== PREMIUM BROWSE PAGE STYLES ===== */
+    
+    /* Product Cards */
+    .product-card-browse {
+        background: white;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+    }
+    
+    .product-card-browse:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .product-image-container {
+        position: relative;
+        overflow: hidden;
+        height: 280px;
+    }
+    
+    .product-image-browse {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .product-card-browse:hover .product-image-browse {
+        transform: scale(1.15);
+    }
+    
+    .product-hover-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(99, 102, 241, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .product-card-browse:hover .product-hover-overlay {
+        opacity: 1;
+    }
+    
+    .hover-icon {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: scale(0.5);
+        transition: transform 0.3s ease;
+    }
+    
+    .product-card-browse:hover .hover-icon {
+        transform: scale(1);
+    }
+    
+    .hover-icon i {
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+    
+    /* Badges */
+    .product-badges-overlay {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+    }
+    
+    .badge-modern-dark {
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    
+    .badge-modern-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    /* Color-coded availability indicator 
+    .availability-indicator {
+        position: absolute;
+        bottom: 280px;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        z-index: 5;
+    }
+    
+    .indicator-green {
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    }
+    
+    .indicator-yellow {
+        background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+    }
+    
+    .indicator-red {
+        background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+    }
+    */
+    /* Typography */
+    .product-name-browse {
+        font-size: 1.05rem;
+        line-height: 1.3;
+        height: 2.6em;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        transition: color 0.3s ease;
+    }
+    
+    .product-card-browse:hover .product-name-browse {
+        color: var(--primary) !important;
+    }
+    
+    .product-desc-browse {
+        height: 3em;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    /* Rating Stars */
+    .rating-star {
+        color: #f59e0b;
+        font-size: 0.875rem;
+    }
+    
+    .rating-star-empty {
+        color: #e5e7eb;
+        font-size: 0.875rem;
+    }
+    
+    /* Badges */
+    .badge-category-modern {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        color: var(--dark);
+        padding: 0.5rem 0.75rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    /* Price */
+    .price-modern {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stock-indicator-badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 2rem;
+        font-weight: 600;
+    }
+    
+    .bg-success-soft {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .bg-warning-soft {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    /* Product Actions */
+    .product-actions-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+    
+    .qty-add-wrapper {
+        display: flex;
+        flex: 1;
+        gap: 0.5rem;
+    }
+    
+    .qty-selector-browse {
+        display: flex;
+        flex: 1;
+        background: #f8fafc;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 2px solid #e2e8f0;
+    }
+    
+    .qty-btn-browse {
+        background: transparent;
+        border: none;
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: var(--dark);
+    }
+    
+    .qty-btn-browse:hover {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .qty-input-browse {
+        flex: 1;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-weight: 600;
+        pointer-events: none;
+        min-width: 40px;
+    }
+    
+    .btn-cart-modern {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0 1rem;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        cursor: pointer;
+    }
+    
+    .btn-cart-modern:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    
+    .btn-cart-modern i {
+        font-size: 1.25rem;
+    }
+    
+    .btn-view-modern {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        color: var(--dark);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    
+    .btn-view-modern:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+    }
+    
+    .btn-primary-modern {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    
+    /* Scroll Reveal */
+    .scroll-reveal-browse {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease;
+    }
+    
+    .scroll-reveal-browse.revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .product-image-container {
+            height: 220px;
+        }
+        
+        .availability-indicator {
+            bottom: 220px;
+        }
+    }
+</style>
+
+<script>
+    // Quantity controls
+    function incrementQty(btn, max) {
+        const input = btn.closest('.qty-selector-browse').querySelector('.qty-input-browse');
+        const currentVal = parseInt(input.value) || 1;
+        if (currentVal < max) {
+            input.value = currentVal + 1;
+        }
+    }
+    
+    function decrementQty(btn) {
+        const input = btn.closest('.qty-selector-browse').querySelector('.qty-input-browse');
+        const currentVal = parseInt(input.value) || 1;
+        if (currentVal > 1) {
+            input.value = currentVal - 1;
+        }
+    }
+    
+    // Scroll Reveal Animation
+    document.addEventListener('DOMContentLoaded', function() {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all product cards
+        document.querySelectorAll('.scroll-reveal-browse').forEach(el => {
+            observer.observe(el);
+        });
+    });
+    
+    // Sort products
+    function applySorting(sortBy) {
+        const grid = document.getElementById('productsGrid');
+        const items = Array.from(document.querySelectorAll('.product-item'));
+        
+        if (!sortBy) return;
+        
+        items.sort((a, b) => {
+            const priceA = parseFloat(a.dataset.price);
+            const priceB = parseFloat(b.dataset.price);
+            const nameA = a.dataset.name.toLowerCase();
+            const nameB = b.dataset.name.toLowerCase();
+            const stockA = parseInt(a.dataset.stock);
+            const stockB = parseInt(b.dataset.stock);
+            
+            switch(sortBy) {
+                case 'price_asc':
+                    return priceA - priceB;
+                case 'price_desc':
+                    return priceB - priceA;
+                case 'name_asc':
+                    return nameA.localeCompare(nameB);
+                case 'name_desc':
+                    return nameB.localeCompare(nameA);
+                case 'stock_desc':
+                    return stockB - stockA;
+                default:
+                    return 0;
+            }
+        });
+        
+        items.forEach(item => grid.appendChild(item));
+    }
+    
+    // Filter products
+    function filterProducts() {
+        const inStockOnly = document.getElementById('inStockOnly').checked;
+        const items = document.querySelectorAll('.product-item');
+        let visibleCount = 0;
+        
+        items.forEach(item => {
+            const stock = parseInt(item.dataset.stock);
+            if (inStockOnly && stock === 0) {
+                item.style.display = 'none';
+            } else {
+                item.style.display = '';
+                visibleCount++;
+            }
+        });
+        
+        document.getElementById('productCount').textContent = visibleCount;
+    }
+    
+    // View toggle (placeholder for future implementation)
+    function toggleView(view) {
+        const gridBtn = document.getElementById('gridViewBtn');
+        const listBtn = document.getElementById('listViewBtn');
+        
+        if (view === 'grid') {
+            gridBtn.classList.add('active');
+            listBtn.classList.remove('active');
+        } else {
+            listBtn.classList.add('active');
+            gridBtn.classList.remove('active');
+        }
+    }
+</script>
+{% endblock %}

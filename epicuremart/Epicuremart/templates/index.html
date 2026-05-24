@@ -1,0 +1,1308 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Full-Width Hero Carousel Section -->
+<div class="hero-carousel-section">
+    <div class="hero-carousel">
+        <div class="carousel-inner">
+            <!-- Slide 1 -->
+            <div class="carousel-slide active">
+                <div class="carousel-image" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&q=80');"></div>
+                <div class="carousel-overlay"></div>
+                <div class="carousel-content">
+                    <div class="container">
+                        <div class="hero-content-wrapper">
+                            <h1 class="hero-main-title">Fresh Local Produce Delivered Daily</h1>
+                            <p class="hero-tagline">Premium quality food from verified sellers, straight to your door</p>
+                            <div class="trust-badges-inline">
+                                <span class="trust-badge"><i class="fas fa-shipping-fast"></i> Free Delivery</span>
+                                <span class="trust-badge"><i class="fas fa-shield-check"></i> Verified Sellers</span>
+                                <span class="trust-badge"><i class="fas fa-star"></i> 4.8+ Rating</span>
+                            </div>
+                            <a href="{{ url_for('browse') }}" class="btn btn-hero-modern btn-lg">
+                                <span>START SHOPPING</span>
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Slide 2 -->
+            <div class="carousel-slide">
+                <div class="carousel-image" style="background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&q=80');"></div>
+                <div class="carousel-overlay"></div>
+                <div class="carousel-content">
+                    <div class="container">
+                        <div class="hero-content-wrapper">
+                            <h1 class="hero-main-title">Artisan Foods & Specialty Items</h1>
+                            <p class="hero-tagline">Discover unique flavors from local artisans and specialty food vendors</p>
+                            <div class="trust-badges-inline">
+                                <span class="trust-badge"><i class="fas fa-leaf"></i> Organic Options</span>
+                                <span class="trust-badge"><i class="fas fa-clock"></i> Same Day Delivery</span>
+                                <span class="trust-badge"><i class="fas fa-award"></i> Premium Quality</span>
+                            </div>
+                            <a href="{{ url_for('browse') }}" class="btn btn-hero-modern btn-lg">
+                                <span>EXPLORE NOW</span>
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Slide 3 -->
+            <div class="carousel-slide">
+                <div class="carousel-image" style="background-image: url('https://images.unsplash.com/photo-1495195134817-aeb325a55b65?w=1920&q=80');"></div>
+                <div class="carousel-overlay"></div>
+                <div class="carousel-content">
+                    <div class="container">
+                        <div class="hero-content-wrapper">
+                            <h1 class="hero-main-title">Track Every Step with QR Technology</h1>
+                            <p class="hero-tagline">Know exactly where your order is, from seller to your doorstep</p>
+                            <div class="trust-badges-inline">
+                                <span class="trust-badge"><i class="fas fa-qrcode"></i> QR Tracking</span>
+                                <span class="trust-badge"><i class="fas fa-lock"></i> Secure</span>
+                                <span class="trust-badge"><i class="fas fa-check-circle"></i> Verified</span>
+                            </div>
+                            <a href="{{ url_for('browse') }}" class="btn btn-hero-modern btn-lg">
+                                <span>LEARN MORE</span>
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Carousel Controls -->
+        <button class="carousel-control prev" onclick="moveCarousel(-1)">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="carousel-control next" onclick="moveCarousel(1)">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <!-- Carousel Indicators -->
+        <div class="carousel-indicators">
+            <span class="indicator active" onclick="goToSlide(0)"></span>
+            <span class="indicator" onclick="goToSlide(1)"></span>
+            <span class="indicator" onclick="goToSlide(2)"></span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Features -->
+    <div class="row mb-5 g-4">
+        <div class="col-md-4">
+            <div class="feature-card card h-100 text-center p-4 border-0 shadow-sm">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <h4 class="fw-bold mb-3">QR Tracking</h4>
+                <p class="text-muted mb-0">Real-time order tracking with secure QR code verification at every step of delivery</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card card h-100 text-center p-4 border-0 shadow-sm">
+                <div class="feature-icon mb-3 success">
+                    <i class="fas fa-shipping-fast"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Fast Delivery</h4>
+                <p class="text-muted mb-0">Professional courier network ensuring your orders arrive fresh and on time</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card card h-100 text-center p-4 border-0 shadow-sm">
+                <div class="feature-icon mb-3 info">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Secure Platform</h4>
+                <p class="text-muted mb-0">Encrypted transactions and verified sellers for your peace of mind</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image-Based Categories Section -->
+    <div class="mb-5">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Shop by Category</h2>
+            <p class="lead text-muted">Discover fresh products from local vendors across all categories</p>
+        </div>
+        
+        <!-- Categories with Real Images -->
+        <div class="categories-image-grid">
+            {% for category in categories %}
+            <a href="{{ url_for('browse', category=category.id) }}" class="text-decoration-none category-image-link">
+                <div class="category-image-card">
+                    <div class="category-image-wrapper">
+                        {% set category_base_name = category.name.split('&')[0].strip() %}
+                        {% if category.background_image %}
+                        <div class="category-bg-image" style="background-image: url('{% if category.background_image.startswith('http') %}{{ category.background_image }}{% else %}{{ url_for('static', filename='uploads/' + category.background_image) }}{% endif %}');"></div>
+                        {% else %}
+                        <div class="category-bg-image" style="background-image: url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80');"></div>
+                        {% endif %}
+                        <div class="category-image-overlay"></div>
+                        <div class="category-content">
+                            <h5 class="category-title">{{ category_base_name }}</h5>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Featured Products with Premium Design -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+            <div>
+                <h2 class="display-6 fw-bold mb-2">
+                    <i class="fas fa-fire text-warning me-2"></i>Featured Products
+                </h2>
+                <p class="text-muted mb-0">Handpicked selections from our premium sellers</p>
+            </div>
+            <a href="{{ url_for('browse') }}" class="btn btn-outline-primary">
+                View All <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        
+        <!-- Products Carousel for Mobile -->
+        <div class="products-carousel-wrapper">
+            <div class="products-grid">
+                {% for product in products %}
+                <div class="product-card-wrapper">
+                    <div class="card product-card-premium h-100 border-0">
+                        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none position-relative">
+                            <div class="product-image-wrapper">
+                                {% if product.image %}
+                                <img src="{% if product.image.startswith('http') %}{{ product.image }}{% else %}{{ url_for('static', filename='uploads/' + product.image) }}{% endif %}" 
+                                     class="product-image-premium" alt="{{ product.name }}">
+                                <div class="product-zoom-overlay">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
+                                {% else %}
+                                <div class="product-image-premium bg-gradient d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-image fa-3x text-secondary opacity-25"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </a>
+                        <div class="product-overlay-badges">
+                            {% if product.stock == 0 %}
+                            <span class="badge badge-dark-modern">Out of Stock</span>
+                            {% elif product.stock < 10 %}
+                            <span class="badge badge-warning-modern pulse-badge">
+                                <i class="fas fa-fire me-1"></i>Only {{ product.stock }} left!
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Stock Progress Bar -->
+                        {% if product.stock > 0 and product.stock < 20 %}
+                        <div class="stock-progress-wrapper">
+                            <div class="stock-progress-bar" style="width: {{ (product.stock / 20 * 100)|int }}%"></div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="card-body p-3">
+                            <div class="mb-2">
+                                <small class="text-muted fw-semibold shop-name">
+                                    <i class="fas fa-store me-1"></i>{{ product.shop.name }}
+                                </small>
+                            </div>
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="text-decoration-none">
+                                <h5 class="card-title fw-bold mb-2 text-dark product-title">{{ product.name }}</h5>
+                            </a>
+                            <p class="card-text text-muted small mb-3 product-description">
+                                {{ product.description[:60] }}{% if product.description|length > 60 %}...{% endif %}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="price-premium">₱{{ "%.2f"|format(product.price) }}</span>
+                                <span class="badge stock-badge-modern {% if product.stock > 10 %}bg-success{% elif product.stock > 0 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ product.stock }} in stock
+                                </span>
+                            </div>
+                            
+                            <!-- Add to Cart Section -->
+                            {% if session.user_id and session.role == 'customer' %}
+                                {% if product.stock > 0 %}
+                                <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}" class="add-to-cart-form">
+                                    <div class="quantity-cart-group">
+                                        <div class="quantity-selector-modern">
+                                            <button type="button" class="qty-btn" onclick="decrementIndexQty(this)">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" name="quantity" class="qty-input-modern" value="1" min="1" max="{{ product.stock }}" readonly>
+                                            <button type="button" class="qty-btn" onclick="incrementIndexQty(this, {{ product.stock }})">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <button type="submit" class="btn btn-add-to-cart">
+                                            <i class="fas fa-cart-plus cart-icon"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                                {% else %}
+                                <button class="btn btn-secondary w-100 btn-sm" disabled>
+                                    <i class="fas fa-times-circle me-1"></i>Out of Stock
+                                </button>
+                                {% endif %}
+                            {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-primary-gradient btn-sm w-100">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login to Purchase
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    {% if not session.user_id %}
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100" style="background: var(--gradient-primary); color: white;">
+                <div class="card-body p-5">
+                    <i class="fas fa-store fa-3x mb-3 opacity-75"></i>
+                    <h3 class="fw-bold mb-3">Become a Seller</h3>
+                    <p class="mb-4 opacity-90">Join our marketplace and reach thousands of customers. Start selling your premium products today.</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                        Get Started <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100" style="background: var(--gradient-success); color: white;">
+                <div class="card-body p-5">
+                    <i class="fas fa-motorcycle fa-3x mb-3 opacity-75"></i>
+                    <h3 class="fw-bold mb-3">Join as Courier/Rider</h3>
+                    <p class="mb-4 opacity-90">Be part of our delivery network. Flexible hours, competitive rates, and cutting-edge QR tracking.</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                        Apply Now <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- About Us Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="card-body p-5 text-center">
+                    <i class="fas fa-info-circle fa-3x mb-3 opacity-75"></i>
+                    <h3 class="fw-bold mb-3">Learn More About Epicuremart</h3>
+                    <p class="mb-4 opacity-90 mx-auto" style="max-width: 600px;">Discover our story, mission, and commitment to bringing fresh, quality food from local vendors to your doorstep with innovative QR-powered tracking.</p>
+                    <a href="{{ url_for('about') }}" class="btn btn-light btn-lg">
+                        About Us <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="mb-5">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+            <p class="lead text-muted">Simple, secure, and tracked every step of the way</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px; background: var(--gradient-primary);">
+                            <i class="fas fa-search fa-2x text-white"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-2">Browse</h5>
+                    <p class="text-muted">Explore products from verified local sellers</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px; background: var(--gradient-success);">
+                            <i class="fas fa-shopping-cart fa-2x text-white"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-2">Order</h5>
+                    <p class="text-muted">Add to cart and checkout securely</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <i class="fas fa-qrcode fa-2x text-white"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-2">Track</h5>
+                    <p class="text-muted">Follow your order with QR verification</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                            <i class="fas fa-check-circle fa-2x text-white"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-2">Receive</h5>
+                    <p class="text-muted">Get your order fresh and verified</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ===== FULL-WIDTH HERO CAROUSEL ===== */
+    .hero-carousel-section {
+        position: relative;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        margin-bottom: 4rem;
+        height: 700px;
+        overflow: hidden;
+    }
+    
+    .hero-carousel {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .carousel-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .carousel-slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+        z-index: 0;
+    }
+    
+    .carousel-slide.active {
+        opacity: 1;
+        z-index: 1;
+    }
+    
+    .carousel-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        animation: kenburns 20s ease-in-out infinite;
+    }
+    
+    @keyframes kenburns {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+    
+    .carousel-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+        z-index: 1;
+    }
+    
+    .carousel-content {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        z-index: 2;
+    }
+    
+    .hero-content-wrapper {
+        max-width: 800px;
+        padding: 2rem;
+    }
+    
+    .hero-main-title {
+        font-size: 4rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        animation: fadeInUp 0.8s ease forwards;
+    }
+    
+    .hero-tagline {
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.95);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+        animation: fadeInUp 0.8s ease 0.2s forwards;
+        opacity: 0;
+    }
+    
+    .trust-badges-inline {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2.5rem;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s ease 0.4s forwards;
+        opacity: 0;
+    }
+    
+    .trust-badge {
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .trust-badge i {
+        font-size: 1.25rem;
+    }
+    
+    .btn-hero-modern {
+        background: white;
+        color: #1e293b;
+        padding: 1.25rem 3rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+        border-radius: 0.75rem;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        animation: fadeInUp 0.8s ease 0.6s forwards;
+        opacity: 0;
+    }
+    
+    .btn-hero-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        color: #6366f1;
+    }
+    
+    .btn-hero-modern i {
+        transition: transform 0.3s ease;
+    }
+    
+    .btn-hero-modern:hover i {
+        transform: translateX(5px);
+    }
+    
+    /* Carousel Controls */
+    .carousel-control {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 10;
+        font-size: 1.5rem;
+    }
+    
+    .carousel-control:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    .carousel-control.prev {
+        left: 2rem;
+    }
+    
+    .carousel-control.next {
+        right: 2rem;
+    }
+    
+    /* Carousel Indicators */
+    .carousel-indicators {
+        position: absolute;
+        bottom: 3rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 1rem;
+        z-index: 10;
+    }
+    
+    .indicator {
+        width: 50px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 2px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .indicator.active {
+        background: white;
+        width: 80px;
+    }
+    
+    .indicator:hover {
+        background: rgba(255, 255, 255, 0.7);
+    }
+    
+    /* ===== IMAGE-BASED CATEGORIES ===== */
+    .categories-image-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .category-image-card {
+        position: relative;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        height: 320px;
+    }
+    
+    .category-image-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+    
+    .category-image-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .category-bg-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        transition: transform 0.5s ease;
+    }
+    
+    .category-image-card:hover .category-bg-image {
+        transform: scale(1.1);
+    }
+    
+    .category-image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+        transition: all 0.3s ease;
+    }
+    
+    .category-image-card:hover .category-image-overlay {
+        background: linear-gradient(to top, rgba(99, 102, 241, 0.8) 0%, rgba(99, 102, 241, 0.4) 50%, transparent 100%);
+    }
+    
+    .category-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 2rem;
+        color: white;
+        z-index: 2;
+    }
+    
+    .category-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: white;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* ===== FEATURE CARDS ===== */
+    .feature-card {
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: var(--gradient-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+    
+    .feature-icon.success {
+        background: var(--gradient-success);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+    
+    .feature-icon.info {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+    }
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.5px;
+        border-radius: 0.75rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+    }
+    
+    .btn-hero-outline:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+    }
+    
+    /* ===== PREMIUM CATEGORY CARDS ===== */
+    .categories-carousel-wrapper {
+        position: relative;
+    }
+    
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .category-card-premium {
+        padding: 2rem 1.5rem;
+        text-align: center;
+        background: white;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .category-card-premium::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .category-card-premium:hover::before {
+        opacity: 1;
+    }
+    
+    .category-card-premium:hover {
+        transform: translateY(-12px) scale(1.05);
+        box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+    }
+    
+    .category-icon-wrapper {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1rem;
+    }
+    
+    .category-icon-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 50%;
+        opacity: 0.1;
+        transition: all 0.3s ease;
+    }
+    
+    .category-card-premium:hover .category-icon-bg {
+        opacity: 0.2;
+        transform: scale(1.1);
+    }
+    
+    .category-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2.5rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .category-card-premium:hover .category-icon {
+        transform: translate(-50%, -50%) scale(1.15) rotate(-5deg);
+    }
+    
+    .category-name {
+        font-size: 0.95rem;
+        color: var(--dark);
+        transition: color 0.3s ease;
+    }
+    
+    .category-card-premium:hover .category-name {
+        color: var(--primary);
+    }
+    
+    /* ===== PREMIUM PRODUCT CARDS ===== */
+    .products-carousel-wrapper {
+        position: relative;
+    }
+    
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+    
+    .product-card-premium {
+        background: white;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+    }
+    
+    .product-card-premium:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .product-image-wrapper {
+        position: relative;
+        overflow: hidden;
+        height: 280px;
+    }
+    
+    .product-image-premium {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .product-card-premium:hover .product-image-premium {
+        transform: scale(1.1);
+    }
+    
+    .product-zoom-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .product-zoom-overlay i {
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+    
+    .product-card-premium:hover .product-zoom-overlay {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    
+    .product-overlay-badges {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+    }
+    
+    .badge-dark-modern {
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+    
+    .badge-warning-modern {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+    
+    .pulse-badge {
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    
+    /* Stock Progress Bar */
+    .stock-progress-wrapper {
+        position: absolute;
+        bottom: 280px;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .stock-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+        transition: width 0.3s ease;
+    }
+    
+    .shop-name {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .product-title {
+        font-size: 1.1rem;
+        line-height: 1.3;
+        height: 2.6em;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        transition: color 0.3s ease;
+    }
+    
+    .product-card-premium:hover .product-title {
+        color: var(--primary) !important;
+    }
+    
+    .product-description {
+        height: 3em;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    .price-premium {
+        font-size: 1.75rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stock-badge-modern {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 2rem;
+        font-weight: 600;
+    }
+    
+    /* Quantity Cart Group */
+    .quantity-cart-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+    
+    .quantity-selector-modern {
+        display: flex;
+        flex: 1;
+        background: #f8fafc;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 2px solid #e2e8f0;
+    }
+    
+    .qty-btn {
+        background: transparent;
+        border: none;
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: var(--dark);
+    }
+    
+    .qty-btn:hover {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .qty-input-modern {
+        flex: 1;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-weight: 600;
+        pointer-events: none;
+        min-width: 40px;
+    }
+    
+    .btn-add-to-cart {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0 1rem;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    
+    .btn-add-to-cart:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    
+    .btn-add-to-cart .cart-icon {
+        font-size: 1.25rem;
+        animation: cartBounce 0.5s ease;
+    }
+    
+    @keyframes cartBounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+    
+    .btn-add-to-cart:active .cart-icon {
+        animation: flyToCart 0.6s ease;
+    }
+    
+    @keyframes flyToCart {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(0.5) translateY(-20px);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+    
+    .btn-primary-gradient {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    
+    /* ===== MOBILE RESPONSIVENESS ===== */
+    @media (max-width: 768px) {
+        .hero-carousel-section {
+            height: 550px;
+        }
+        
+        .hero-main-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-tagline {
+            font-size: 1.1rem;
+        }
+        
+        .trust-badges-inline {
+            gap: 1rem;
+        }
+        
+        .trust-badge {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .btn-hero-modern {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+        
+        .carousel-control {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
+        }
+        
+        .carousel-control.prev {
+            left: 1rem;
+        }
+        
+        .carousel-control.next {
+            right: 1rem;
+        }
+        
+        .categories-image-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .category-image-card {
+            height: 280px;
+        }
+        
+        .category-emoji {
+            font-size: 2.5rem;
+        }
+        
+        .category-title {
+            font-size: 1.25rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .hero-carousel-section {
+            height: 500px;
+        }
+        
+        .hero-main-title {
+            font-size: 2rem;
+        }
+        
+        .hero-tagline {
+            font-size: 1rem;
+        }
+        
+        .trust-badges-inline {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .carousel-indicators {
+            bottom: 2rem;
+        }
+        
+        .indicator {
+            width: 40px;
+        }
+        
+        .indicator.active {
+            width: 60px;
+        }
+        
+        .categories-image-grid {
+            grid-template-columns: 1fr;
+            overflow-x: auto;
+            display: flex;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            gap: 1rem;
+        }
+        
+        .categories-image-grid::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .category-image-card {
+            flex: 0 0 85%;
+            scroll-snap-align: center;
+            height: 300px;
+        }
+    }
+</style>
+
+<script>
+    // Carousel functionality
+    let currentSlide = 0;
+    let autoSlideInterval;
+    
+    function showSlide(n) {
+        const slides = document.querySelectorAll('.carousel-slide');
+        const indicators = document.querySelectorAll('.indicator');
+        
+        if (n >= slides.length) {
+            currentSlide = 0;
+        }
+        if (n < 0) {
+            currentSlide = slides.length - 1;
+        }
+        
+        slides.forEach(slide => slide.classList.remove('active'));
+        indicators.forEach(indicator => indicator.classList.remove('active'));
+        
+        slides[currentSlide].classList.add('active');
+        indicators[currentSlide].classList.add('active');
+    }
+    
+    function moveCarousel(direction) {
+        currentSlide += direction;
+        showSlide(currentSlide);
+        resetAutoSlide();
+    }
+    
+    function goToSlide(n) {
+        currentSlide = n;
+        showSlide(currentSlide);
+        resetAutoSlide();
+    }
+    
+    function autoSlide() {
+        currentSlide++;
+        showSlide(currentSlide);
+    }
+    
+    function resetAutoSlide() {
+        clearInterval(autoSlideInterval);
+        autoSlideInterval = setInterval(autoSlide, 5000);
+    }
+    
+    // Initialize carousel
+    document.addEventListener('DOMContentLoaded', function() {
+        showSlide(currentSlide);
+        autoSlideInterval = setInterval(autoSlide, 5000);
+    });
+    
+    // Index page quantity controls
+    function incrementIndexQty(btn, max) {
+        const input = btn.closest('form').querySelector('.qty-input-modern');
+        const currentVal = parseInt(input.value) || 1;
+        if (currentVal < max) {
+            input.value = currentVal + 1;
+        }
+    }
+    
+    function decrementIndexQty(btn) {
+        const input = btn.closest('form').querySelector('.qty-input-modern');
+        const currentVal = parseInt(input.value) || 1;
+        if (currentVal > 1) {
+            input.value = currentVal - 1;
+        }
+    }
+    
+    // Scroll Reveal Animation
+    document.addEventListener('DOMContentLoaded', function() {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all elements that should reveal on scroll
+        document.querySelectorAll('.product-card-wrapper, .category-link').forEach(el => {
+            el.classList.add('scroll-reveal');
+            observer.observe(el);
+        });
+    });
+    
+    // Add to cart animation
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const cartIcon = this.querySelector('.cart-icon');
+            if (cartIcon) {
+                cartIcon.style.animation = 'none';
+                setTimeout(() => {
+                    cartIcon.style.animation = 'flyToCart 0.6s ease';
+                }, 10);
+            }
+        });
+    });
+</script>
+{% endblock %}

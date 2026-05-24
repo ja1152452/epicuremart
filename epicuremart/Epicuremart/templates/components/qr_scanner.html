@@ -1,0 +1,316 @@
+<!-- QR Scanner Component with Camera -->
+<div class="qr-scanner-container">
+    <div class="scanner-header">
+        <h5 class="mb-0">
+            <i class="fas fa-qrcode me-2"></i>Scan QR Code
+        </h5>
+    </div>
+    
+    <div class="scanner-body">
+        <!-- Video Preview -->
+        <div class="video-container" id="videoContainer">
+            <video id="qrVideo" playsinline></video>
+            <div class="scanner-overlay">
+                <div class="scanner-frame"></div>
+                <p class="scanner-instruction">Position QR code within frame</p>
+            </div>
+            <canvas id="qrCanvas" style="display: none;"></canvas>
+        </div>
+        
+        <!-- Controls -->
+        <div class="scanner-controls">
+            <button type="button" class="btn btn-primary" id="startScanBtn" onclick="startScanner()">
+                <i class="fas fa-camera me-2"></i>Start Camera
+            </button>
+            <button type="button" class="btn btn-danger" id="stopScanBtn" onclick="stopScanner()" style="display: none;">
+                <i class="fas fa-stop me-2"></i>Stop Camera
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="switchCamera()" id="switchCameraBtn" style="display: none;">
+                <i class="fas fa-sync me-2"></i>Switch Camera
+            </button>
+        </div>
+        
+        <!-- Manual Input Fallback -->
+        <div class="manual-input-section">
+            <p class="text-center text-muted mb-3">
+                <small>Or enter token manually</small>
+            </p>
+            <form method="POST" id="qrForm">
+                <div class="input-group">
+                    <textarea name="token" id="tokenInput" class="form-control" rows="3" 
+                              placeholder="Paste QR token here..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100 mt-3">
+                    <i class="fas fa-check me-2"></i>Verify Token
+                </button>
+            </form>
+        </div>
+        
+        <!-- Status Messages -->
+        <div id="scannerStatus" class="scanner-status"></div>
+    </div>
+</div>
+
+<style>
+    .qr-scanner-container {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .scanner-header {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        padding: 1.5rem;
+    }
+    
+    .scanner-body {
+        padding: 2rem;
+    }
+    
+    .video-container {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto 2rem;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 1;
+    }
+    
+    #qrVideo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .scanner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .scanner-frame {
+        width: 250px;
+        height: 250px;
+        border: 3px solid #10b981;
+        border-radius: 12px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        position: relative;
+        animation: scannerPulse 2s ease-in-out infinite;
+    }
+    
+    .scanner-frame::before,
+    .scanner-frame::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #10b981;
+    }
+    
+    .scanner-frame::before {
+        top: -3px;
+        left: -3px;
+        border-right: none;
+        border-bottom: none;
+    }
+    
+    .scanner-frame::after {
+        bottom: -3px;
+        right: -3px;
+        border-left: none;
+        border-top: none;
+    }
+    
+    @keyframes scannerPulse {
+        0%, 100% {
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        }
+        50% {
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+        }
+    }
+    
+    .scanner-instruction {
+        color: white;
+        margin-top: 1.5rem;
+        font-weight: 600;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        animation: fadeInOut 2s ease-in-out infinite;
+    }
+    
+    @keyframes fadeInOut {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    
+    .scanner-controls {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .manual-input-section {
+        max-width: 500px;
+        margin: 0 auto;
+        padding-top: 2rem;
+        border-top: 2px dashed #e2e8f0;
+    }
+    
+    .scanner-status {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .scanner-status.success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .scanner-status.error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .scanner-status.info {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+</style>
+
+<!-- Include jsQR library -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+<script>
+    let videoStream = null;
+    let scanning = false;
+    let currentCamera = 'environment'; // 'user' for front, 'environment' for back
+    
+    async function startScanner() {
+        try {
+            showStatus('Requesting camera access...', 'info');
+            
+            const constraints = {
+                video: {
+                    facingMode: currentCamera,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+            
+            videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+            const video = document.getElementById('qrVideo');
+            video.srcObject = videoStream;
+            video.play();
+            
+            document.getElementById('startScanBtn').style.display = 'none';
+            document.getElementById('stopScanBtn').style.display = 'inline-block';
+            document.getElementById('switchCameraBtn').style.display = 'inline-block';
+            
+            scanning = true;
+            showStatus('Camera active. Position QR code in frame.', 'success');
+            scanQRCode();
+            
+        } catch (error) {
+            console.error('Camera error:', error);
+            showStatus('Camera access denied or unavailable. Please use manual input below.', 'error');
+        }
+    }
+    
+    function stopScanner() {
+        scanning = false;
+        
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+        }
+        
+        const video = document.getElementById('qrVideo');
+        video.srcObject = null;
+        
+        document.getElementById('startScanBtn').style.display = 'inline-block';
+        document.getElementById('stopScanBtn').style.display = 'none';
+        document.getElementById('switchCameraBtn').style.display = 'none';
+        
+        showStatus('Camera stopped.', 'info');
+    }
+    
+    async function switchCamera() {
+        currentCamera = currentCamera === 'environment' ? 'user' : 'environment';
+        stopScanner();
+        setTimeout(() => startScanner(), 500);
+    }
+    
+    function scanQRCode() {
+        if (!scanning) return;
+        
+        const video = document.getElementById('qrVideo');
+        const canvas = document.getElementById('qrCanvas');
+        const context = canvas.getContext('2d');
+        
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code) {
+                handleQRCodeDetected(code.data);
+                return;
+            }
+        }
+        
+        requestAnimationFrame(scanQRCode);
+    }
+    
+    function handleQRCodeDetected(qrData) {
+        scanning = false;
+        stopScanner();
+        
+        showStatus('QR Code detected! Verifying...', 'success');
+        
+        // Play success sound
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuGzvDdjzwOF2S46+ukSxELR6Lh8bllHgU2jtXwzIMoChlfuenrpFISDUaj4fK8Yx4ENYzT8M2COwoNXLrq66hVFAtGotXxxW0cBjSM0/HPgDsKDFy76+ymUhINRqPU8cRsHgU0jNLwz4E7CgxcuuvspVISC0ak1PG8Yx0DNIzU8c1/OwsNXLrq66hWEwlHpNTxw2gdBDWM0/DNgDsKC1y76uyoVRQLRqLV8cRtHgU1jNPx0H87Cgxcuur');
+        audio.play();
+        
+        // Fill the form with detected QR data
+        document.getElementById('tokenInput').value = qrData;
+        
+        // Auto-submit after 1 second
+        setTimeout(() => {
+            document.getElementById('qrForm').submit();
+        }, 1000);
+    }
+    
+    function showStatus(message, type) {
+        const statusDiv = document.getElementById('scannerStatus');
+        statusDiv.textContent = message;
+        statusDiv.className = `scanner-status ₱{type}`;
+        statusDiv.style.display = 'block';
+    }
+    
+    // Check camera availability on load
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        showStatus('Click "Start Camera" to scan QR code', 'info');
+    } else {
+        showStatus('Camera not supported. Please use manual input.', 'error');
+        document.getElementById('startScanBtn').style.display = 'none';
+    }
+</script>

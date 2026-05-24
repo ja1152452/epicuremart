@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Edit Product</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Product Name *</label>
+                            <input type="text" name="name" class="form-control" value="{{ product.name }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Category *</label>
+                            <select name="category_id" class="form-select" required>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category.id == product.category_id %}selected{% endif %}>
+                                    {{ category.icon }} {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3">{{ product.description }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Price (₱) *</label>
+                                <input type="number" name="price" class="form-control" step="0.01" min="0" value="{{ product.price }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock Quantity *</label>
+                                <input type="number" name="stock" class="form-control" min="0" value="{{ product.stock }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {% if product.image %}
+                            <div class="mb-2">
+                                <label class="form-label">Current Image</label>
+                                <div>
+                                    <img src="{% if product.image.startswith('http') %}{{ product.image }}{% else %}{{ url_for('static', filename='uploads/' + product.image) }}{% endif %}" 
+                                         alt="{{ product.name }}" class="img-thumbnail" style="max-height: 200px;">
+                                </div>
+                            </div>
+                            {% endif %}
+                            <label class="form-label">Update Image</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                            <small class="form-text text-muted">Leave empty to keep current image</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Update Product
+                            </button>
+                            <a href="{{ url_for('seller_products') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
