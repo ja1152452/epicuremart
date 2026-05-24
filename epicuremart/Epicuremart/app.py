@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from decimal import Decimal
+from concurrent.futures import ThreadPoolExecutor
 import jwt
 import pytz
 import qrcode
@@ -13,11 +14,14 @@ import io
 import base64
 import os
 import secrets
+import logging
 from sqlalchemy import Numeric
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from dotenv import load_dotenv
 from supabase import create_client, Client
+
+_mail_executor = ThreadPoolExecutor(max_workers=2)
 
 print("STARTING APP")
 
@@ -605,23 +609,26 @@ def log_action(action, entity_type=None, entity_id=None, details=None):
         print(f"Logging error: {e}")
 
 
+def _send_email_task(app, to, subject, body):
+    """Runs in background thread — never call directly"""
+    with app.app_context():
+        try:
+            msg = MailMessage(
+                subject=subject,
+                recipients=[to],
+                body=body,
+                sender=app.config['MAIL_DEFAULT_SENDER']
+            )
+            mail.send(msg)
+            print(f"[SUCCESS] Email sent successfully to {to}")
+        except Exception:
+            logging.exception("[ERROR] Failed to send email to %s", to)
+
+
 def send_email(to, subject, body):
-    """Send email notification with better error handling"""
-    try:
-        msg = MailMessage(
-            subject=subject,
-            recipients=[to],
-            body=body,
-            sender=app.config['MAIL_DEFAULT_SENDER']
-        )
-        mail.send(msg)
-        print(f"[SUCCESS] Email sent successfully to {to}")
-        return True
-    except Exception as e:
-        print(f"[ERROR] Email error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return False
+    """Dispatch email in background thread — returns immediately"""
+    _mail_executor.submit(_send_email_task, app._get_current_object(), to, subject, body)
+    return True
 
 
 def generate_qr_token(order_id, token_type, expiry_hours=24):
