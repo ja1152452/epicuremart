@@ -1,0 +1,743 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="chat-container">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="d-flex align-items-center justify-content-between w-100">
+                        <div class="d-flex align-items-center">
+                            <a href="{{ url_for('messages_inbox') }}" class="btn btn-link text-white me-3 p-0">
+                                <i class="fas fa-arrow-left"></i>
+                            </a>
+                            <div class="avatar-circle me-3 position-relative">
+                                {% set other_user = conversation.user2 if conversation.user1_id == session.user_id else conversation.user1 %}
+                                <i class="fas {% if other_user.role == 'seller' %}fa-store{% elif other_user.role == 'rider' %}fa-motorcycle{% elif other_user.role == 'courier' %}fa-truck{% elif other_user.role == 'admin' %}fa-user-shield{% else %}fa-user{% endif %} fa-lg"></i>
+                                <!-- Online Status Indicator -->
+                                {% if online_status.online %}
+                                <span class="online-indicator"></span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h5 class="mb-0">
+                                    {% if conversation.conversation_type == 'buyer_seller' and conversation.shop %}
+                                        {{ conversation.shop.name }}
+                                    {% else %}
+                                        {{ other_user.full_name or other_user.email }}
+                                    {% endif %}
+                                </h5>
+                                <small class="text-white-50">
+                                    {% if online_status.online %}
+                                        <i class="fas fa-circle text-success" style="font-size: 8px;"></i> Online
+                                    {% else %}
+                                        {{ online_status.last_active_text }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        {% if conversation.order %}
+                        <div class="text-end">
+                            <small class="text-white-50 d-block">Order</small>
+                            <small class="text-white fw-bold">#{{ conversation.order.order_number }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages">
+                    {% if messages %}
+                        {% set prev_date = namespace(value=None) %}
+                        {% for message in messages %}
+                            {% set msg_date = message.created_at.date() %}
+                            {% set today = now.date() if now else message.created_at.date() %}
+                            {% set yesterday = (now - timedelta(days=1)).date() if now else msg_date %}
+                            
+                            {# Date separator #}
+                            {% if prev_date.value != msg_date %}
+                                <div class="date-separator">
+                                    <span class="date-label">
+                                        {% if msg_date == today %}
+                                            Today
+                                        {% elif msg_date == yesterday %}
+                                            Yesterday
+                                        {% else %}
+                                            {% if message.created_at %}{{ message.created_at.strftime('%b %d, %Y') }}{% else %}N/A{% endif %}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {% set prev_date.value = msg_date %}
+                            {% endif %}
+                            
+                            <div class="message {% if message.sender_id == session.user_id %}message-own{% else %}message-other{% endif %}" 
+                                 data-message-id="{{ message.id }}">
+                                {% if message.sender_id != session.user_id %}
+                                <!-- Role badge for other user -->
+                                <div class="message-sender-info">
+                                    <span class="role-badge role-{{ message.sender.role }}">
+                                        {{ message.sender.role.title() }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="message-bubble">
+                                    {% if message.image_url %}
+                                    {# Check if it's an image by image_url presence #}
+                                    <div class="message-image-container" onclick="openImageModal('{% if message.image_url.startswith('http') %}{{ message.image_url }}{% else %}{{ url_for('static', filename='uploads/' + message.image_url) }}{% endif %}')">
+                                        <img src="{% if message.image_url.startswith('http') %}{{ message.image_url }}{% else %}{{ url_for('static', filename='uploads/' + message.image_url) }}{% endif %}" 
+                                             class="message-image" alt="Shared image">
+                                        <div class="image-overlay">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                    {% elif message.message_type == 'image' and message.image_url %}
+                                    {# Fallback for old message_type=='image' format #}
+                                    <div class="message-image-container" onclick="openImageModal('{% if message.image_url.startswith('http') %}{{ message.image_url }}{% else %}{{ url_for('static', filename='uploads/' + message.image_url) }}{% endif %}')">
+                                        <img src="{% if message.image_url.startswith('http') %}{{ message.image_url }}{% else %}{{ url_for('static', filename='uploads/' + message.image_url) }}{% endif %}" 
+                                             class="message-image" alt="Shared image">
+                                        <div class="image-overlay">
+                                            <i class="fas fa-search-plus"></i>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if message.message_text and message.message_text != '[Image]' and message.message_text != '[IMAGE]' %}
+                                    <p class="mb-1">{{ message.message_text }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="message-time">{% if message.created_at %}{{ message.created_at.strftime('%I:%M %p') }}{% else %}N/A{% endif %}</small>
+                                        {% if message.sender_id == session.user_id %}
+                                        <small class="message-status">
+                                            {% if message.status == 'sent' %}
+                                                <i class="fas fa-check"></i>
+                                            {% elif message.status == 'delivered' %}
+                                                <i class="fas fa-check-double"></i>
+                                            {% elif message.status == 'seen' %}
+                                                <i class="fas fa-check-double text-primary"></i>
+                                            {% endif %}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center p-5 text-muted">
+                        <i class="fas fa-comments fa-3x mb-3"></i>
+                        <p>Start your conversation</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-area">
+                    {% if is_read_only %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-lock"></i> This conversation is read-only
+                    </div>
+                    {% else %}
+                    <form id="messageForm" onsubmit="sendMessage(event)" enctype="multipart/form-data">
+                        <div class="input-group">
+                            <button type="button" class="btn btn-light" onclick="document.getElementById('imageInput').click()">
+                                <i class="fas fa-image"></i>
+                            </button>
+                            <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                            <input type="text" id="messageInput" name="message_text" class="form-control" 
+                                   placeholder="Type your message..." autocomplete="off">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div id="imagePreview" class="image-preview" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="clearImagePreview()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-body p-0 position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                <img id="modalImage" src="" class="img-fluid w-100 rounded" alt="Full size image">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-container {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 140px);
+        max-height: calc(100vh - 140px);
+    }
+    
+    @media (max-width: 768px) {
+        .chat-container {
+            height: calc(100vh - 120px);
+            max-height: calc(100vh - 120px);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .chat-container {
+            height: calc(100vh - 90px);
+            max-height: calc(100vh - 90px);
+            border-radius: 12px;
+        }
+    }
+    
+    .chat-header {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        padding: 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        flex-shrink: 0;
+    }
+    
+    @media (max-width: 576px) {
+        .chat-header {
+            padding: 1rem;
+        }
+    }
+    
+    .avatar-circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .chat-messages {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1.5rem;
+        background: #f8fafc;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+        position: relative;
+    }
+    
+    .chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-track {
+        background: #e2e8f0;
+        border-radius: 4px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+    }
+    
+    .message {
+        margin-bottom: 1rem;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message-bubble {
+        max-width: 70%;
+        padding: 0.875rem 1.125rem;
+        border-radius: 18px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .message-own {
+        text-align: right;
+    }
+    
+    .message-own .message-bubble {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .message-other .message-bubble {
+        background: white;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+    
+    /* Online Status Indicator */
+    .online-indicator {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 12px;
+        height: 12px;
+        background: #10b981;
+        border: 2px solid white;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    
+    /* Date Separator */
+    .date-separator {
+        text-align: center;
+        margin: 1.5rem 0;
+        position: relative;
+    }
+    
+    .date-label {
+        background: #e2e8f0;
+        padding: 0.25rem 1rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #64748b;
+        display: inline-block;
+    }
+    
+    /* Role Badges */
+    .message-sender-info {
+        margin-bottom: 0.25rem;
+    }
+    
+    .role-badge {
+        display: inline-block;
+        padding: 0.125rem 0.5rem;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .role-seller {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .role-customer {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    
+    .role-courier {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .role-rider {
+        background: #fce7f3;
+        color: #9f1239;
+    }
+    
+    .role-admin {
+        background: #f3e8ff;
+        color: #6b21a8;
+    }
+    
+    /* Message Status Icons */
+    .message-status {
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+    }
+    
+    /* Image in Messages */
+    .message-image-container {
+        position: relative;
+        max-width: 300px;
+        cursor: pointer;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 12px;
+    }
+    
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .message-image-container:hover .image-overlay {
+        opacity: 1;
+    }
+    
+    .image-overlay i {
+        color: white;
+        font-size: 2rem;
+    }
+    
+    /* Image Preview in Input */
+    .image-preview {
+        position: relative;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .image-preview img {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 8px;
+    }
+    
+    .image-preview button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+    }
+    
+    .chat-input-area {
+        padding: 1rem;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        flex-shrink: 0;
+    }
+    
+    @media (max-width: 576px) {
+        .chat-input-area {
+            padding: 0.75rem;
+        }
+    }
+    
+    .chat-input-area .form-control {
+        border-radius: 24px;
+        padding: 0.75rem 1.25rem;
+        border: 2px solid #e2e8f0;
+    }
+    
+    .chat-input-area .form-control:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .chat-input-area .btn-primary {
+        border-radius: 50%;
+        width: 45px;
+        height: auto;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<script>
+// Auto-scroll to bottom of chat messages
+function scrollToBottom(smooth = false) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        if (smooth) {
+            chatMessages.scrollTo({
+                top: chatMessages.scrollHeight,
+                behavior: 'smooth'
+            });
+        } else {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+}
+
+// Scroll to bottom on page load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => scrollToBottom(false), 100);
+});
+
+// Also scroll after all images and content loaded
+window.addEventListener('load', function() {
+    setTimeout(() => scrollToBottom(false), 100);
+});
+
+function sendMessage(event) {
+    event.preventDefault();
+    
+    const form = event.target.closest('form');
+    const messageInput = document.getElementById('messageInput');
+    const messageText = messageInput.value.trim();
+    const imageInput = document.getElementById('imageInput');
+    
+    // Require either text or image
+    if (!messageText && !imageInput.files[0]) {
+        console.log('No message text or image');
+        return;
+    }
+    
+    console.log('Sending message...', { text: messageText, hasImage: !!imageInput.files[0] });
+    
+    // Disable input while sending
+    messageInput.disabled = true;
+    const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+    if (submitButton) submitButton.disabled = true;
+    
+    // Create FormData from the form and ensure message_text is updated with trimmed text
+    const formData = new FormData(form);
+    formData.set('message_text', messageText);
+    
+    // Add image if present
+    if (imageInput.files[0]) {
+        formData.set('image', imageInput.files[0]);
+    }
+    
+    const conversationId = '{{ conversation.id }}';
+    
+    fetch(`/messages/send/${conversationId}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+            }).catch(() => {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Update lastMessageTimestamp from server response
+            if (data.message.timestamp) {
+                lastMessageTimestamp = data.message.timestamp;
+            } else {
+                lastMessageTimestamp = new Date().toISOString();
+            }
+            
+            // Add message to chat
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Check if this message already exists to prevent duplicates
+            if (data.message.id) {
+                const existingMessage = chatMessages.querySelector(`[data-message-id="${data.message.id}"]`);
+                if (existingMessage) {
+                    console.log('Message already exists in DOM, skipping duplicate add');
+                    // Still clear input and re-enable since message was successful
+                    messageInput.value = '';
+                    messageInput.disabled = false;
+                    if (submitButton) submitButton.disabled = false;
+                    clearImagePreview();
+                    messageInput.focus();
+                    return; // Message already displayed
+                }
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-own';
+            messageDiv.dataset.messageId = data.message.id || '';
+            
+            let messageContent = '';
+            
+            // Add image if present
+            if (data.message.message_type === 'image' && data.message.image_url) {
+                console.log('Adding image to message:', data.message.image_url);
+                const imageUrl = data.message.image_url.startsWith('http') ? 
+                    data.message.image_url : 
+                    `/static/uploads/${data.message.image_url}`;
+                messageContent += `
+                    <div class="message-image-container" onclick="openImageModal('${imageUrl}')">
+                        <img src="${imageUrl}" class="message-image" alt="Shared image">
+                        <div class="image-overlay">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Add text if present and not just [Image]
+            if (data.message.message_text && data.message.message_text !== '[Image]') {
+                const escapedText = document.createElement('div');
+                escapedText.textContent = data.message.message_text;
+                const safeText = escapedText.innerHTML;
+                messageContent += `<p class="mb-1">${safeText}</p>`;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">
+                    ${messageContent}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="message-time">${data.message.created_at}</small>
+                        <small class="message-status">
+                            <i class="fas fa-check"></i>
+                        </small>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            
+            // Clear input and re-enable
+            messageInput.value = '';
+            messageInput.disabled = false;
+            if (submitButton) submitButton.disabled = false;
+            clearImagePreview();
+            messageInput.focus();
+            
+            // Auto-scroll to new message
+            scrollToBottom(true);
+            console.log('Message sent successfully!');
+        } else {
+            throw new Error(data.error || 'Unknown error');
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        alert('Failed to send message: ' + error.message);
+        messageInput.disabled = false;
+        if (submitButton) submitButton.disabled = false;
+    });
+}
+
+// Image handling functions
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function clearImagePreview() {
+    document.getElementById('imageInput').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('previewImg').src = '';
+}
+
+function openImageModal(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
+// Global variable to track last message timestamp for polling
+let lastMessageTimestamp = new Date().toISOString();
+const allConvIds = {{ all_conv_ids | tojson }};
+
+const pollInterval = setInterval(function() {
+    fetch(`/messages/check-new-multi?conv_ids=${allConvIds.join(',')}&last_timestamp=${lastMessageTimestamp}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.messages && data.messages.length > 0) {
+            const chatMessages = document.getElementById('chatMessages');
+            data.messages.forEach(message => {
+                // Skip messages from current user (they're already displayed when sent)
+                if (message.is_own) {
+                    lastMessageTimestamp = message.timestamp;
+                    return;
+                }
+                
+                // Check if this message already exists in the DOM to prevent duplicates
+                const existingMessage = chatMessages.querySelector(`[data-message-id="${message.id}"]`);
+                if (existingMessage) {
+                    // Message already displayed, just update timestamp and skip
+                    lastMessageTimestamp = message.timestamp;
+                    return;
+                }
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message message-other';
+                messageDiv.dataset.messageId = message.id;
+                
+                let messageContent = '';
+                
+                // Add image if present
+                if (message.image_url) {
+                    const imageUrl = message.image_url.startsWith('http') ? 
+                        message.image_url : 
+                        `/static/uploads/${message.image_url}`;
+                    messageContent += `
+                        <div class="message-image-container" onclick="openImageModal('${imageUrl}')">
+                            <img src="${imageUrl}" class="message-image" alt="Shared image">
+                            <div class="image-overlay">
+                                <i class="fas fa-search-plus"></i>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Add text if present and not just [Image]
+                if (message.message_text && message.message_text !== '[Image]' && message.message_text !== '[IMAGE]') {
+                    const escapedText = document.createElement('div');
+                    escapedText.textContent = message.message_text;
+                    messageContent += `<p class="mb-1">${escapedText.innerHTML}</p>`;
+                }
+                
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">
+                        ${messageContent}
+                        <small class="message-time">${message.created_at}</small>
+                    </div>
+                `;
+                chatMessages.appendChild(messageDiv);
+                lastMessageTimestamp = message.timestamp;
+            });
+            
+            // Auto-scroll to new messages
+            scrollToBottom(true);
+        }
+    })
+    .catch(error => {
+        console.error('Error checking for new messages:', error);
+    });
+}, 1000);  // Poll every 1 second for real-time updates
+</script>
+
+
+{% endblock %}

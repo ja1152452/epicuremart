@@ -1,0 +1,75 @@
+911: 
+912:         orders = query.all()
+913:         total_earnings = sum([float(o.courier_earnings or 0) for o in orders])
+914:         order_count = len(orders)
+915: 
+916:         summary_data = [
+917:             ['Summary', ''],
+918:             ['Total Deliveries:', str(order_count)],
+919:             ['Total Earnings:', f"₱{total_earnings:,.2f}"],
+920:         ]
+921: 
+922:     elif user_role == 'rider':
+923:         query = Order.query.filter_by(rider_id=user_id, status='DELIVERED')
+924:         if start_date and end_date:
+925:             query = query.filter(Order.created_at.between(start_date, end_date))
+926: 
+927:         orders = query.all()
+928:         total_earnings = sum([float(o.rider_earnings or 0) for o in orders])
+929:         order_count = len(orders)
+930: 
+931:         summary_data = [
+932:             ['Summary', ''],
+933:             ['Total Deliveries:', str(order_count)],
+934:             ['Total Earnings:', f"₱{total_earnings:,.2f}"],
+935:         ]
+936: 
+937:     elif user_role == 'admin':
+938:         from sqlalchemy import func as sqlfunc
+939:         query = Order.query.filter_by(status='DELIVERED')
+940:         if start_date and end_date:
+941:             query = query.filter(Order.created_at.between(start_date, end_date))
+942: 
+943:         orders = query.all()
+944:         total_revenue = sum([float(o.total_amount or 0) for o in orders])
+945:         total_commission = sum([float(o.commission_amount or 0) for o in orders])
+946:         total_products_sold = sum([sum([int(item.quantity or 0) for item in o.items]) for o in orders])
+947:         order_count = len(orders)
+948:         avg_order = total_revenue / order_count if order_count > 0 else 0
+949: 
+950:         # Best selling products
+951:         product_sales = {}
+952:         for o in orders:
+953:             for item in o.items:
+954:                 name = item.product.name if item.product else 'Unknown'
+955:                 product_sales[name] = product_sales.get(name, 0) + int(item.quantity or 0)
+956:         top_products = sorted(product_sales.items(), key=lambda x: x[1], reverse=True)[:10]
+957: 
+958:         summary_data = [
+959:             ['Summary', ''],
+960:             ['Total Orders:', str(order_count)],
+961:             ['Total Products Sold:', str(total_products_sold)],
+962:             ['Total Revenue:', f'₱{total_revenue:,.2f}'],
+963:             ['Platform Commission (5%):', f'₱{total_commission:,.2f}'],
+964:             ['Average Order Value:', f'₱{avg_order:,.2f}'],
+965:         ]
+966: 
+967:     summary_table = Table(summary_data, colWidths=[3*inch, 3*inch])
+968:     summary_table.setStyle(TableStyle([
+969:         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2ecc71')),
+970:         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+971:         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+972:         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+973:         ('FONTSIZE', (0, 0), (-1, 0), 14),
+974:         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+975:         ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),
+976:         ('GRID', (0, 0), (-1, -1), 1, colors.black)
+977:     ]))
+978:     elements.append(summary_table)
+979: 
+980:     # Best Selling Products table (admin only)
+981:     if user_role == 'admin' and top_products:
+982:         from reportlab.lib.styles import getSampleStyleSheet
+983:         from reportlab.lib.enums import TA_CENTER
+984:         from reportlab.platypus import Spacer
+985:         heading_style2 = ParagraphStyle('H2', parent=styles['Heading2'], fontSize=13,

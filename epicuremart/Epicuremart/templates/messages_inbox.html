@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0">
+                    <i class="fas fa-comments me-2"></i>Messages
+                    {% if unread_count > 0 %}
+                    <span class="badge bg-danger">{{ unread_count }}</span>
+                    {% endif %}
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            {% if conversation_data %}
+            <div class="list-group">
+                {% for item in conversation_data %}
+                
+                <a href="{{ url_for('view_conversation', conversation_id=item.conversation.id) }}" 
+                   class="list-group-item list-group-item-action {% if item.unread_count > 0 %}unread-conversation{% endif %}">
+                    <div class="d-flex w-100 align-items-center">
+                        <div class="avatar-circle me-3 position-relative">
+                            <i class="fas {% if item.other_user.role == 'seller' %}fa-store{% elif item.other_user.role == 'rider' or item.other_user.role == 'courier' %}fa-motorcycle{% else %}fa-user{% endif %} fa-2x"></i>
+                            {% if item.online_status.online %}
+                            <span class="online-indicator-small"></span>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h5 class="mb-1 fw-bold">
+                                    {{ item.other_user.full_name }}
+                                    {% if item.unread_count > 0 %}
+                                    <span class="badge bg-danger rounded-pill">{{ item.unread_count }}</span>
+                                    {% endif %}
+                                </h5>
+                                <small class="text-muted">
+                                    {% if item.last_message %}
+                                        {% if item.last_message.created_at %}{{ item.last_message.created_at.strftime('%b %d, %I:%M %p') }}{% else %}N/A{% endif %}
+                                    {% else %}
+                                        {% if item.conversation.created_at %}{{ item.conversation.created_at.strftime('%b %d, %I:%M %p') }}{% else %}N/A{% endif %}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            
+                            {# Online/Offline Status #}
+                            <div class="mb-1">
+                                {% if item.online_status.online %}
+                                <small class="text-success">
+                                    <i class="fas fa-circle" style="font-size: 8px;"></i> Online
+                                </small>
+                                {% else %}
+                                <small class="text-muted">
+                                    {{ item.online_status.last_active_text }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            
+                            {# Show context (shop or order) #}
+                            {% if item.conversation.shop %}
+                            <small class="text-primary mb-1 d-block">
+                                <i class="fas fa-store me-1"></i>{{ item.conversation.shop.name }}
+                            </small>
+                            {% elif item.conversation.order %}
+                            <small class="text-info mb-1 d-block">
+                                <i class="fas fa-box me-1"></i>Order #{{ item.conversation.order.order_number }}
+                            </small>
+                            {% endif %}
+                            
+                            {# Show last message preview #}
+                            {% if item.last_message %}
+                            <p class="mb-0 text-muted text-truncate">
+                                {% if item.last_message.sender_id == session.user_id %}
+                                <strong>You:</strong>
+                                {% endif %}
+                                {{ item.last_message.message_text }}
+                            </p>
+                            {% else %}
+                            <p class="mb-0 text-muted"><em>Start a conversation</em></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Messages Yet</h4>
+                    <p class="text-muted">
+                        {% if session.role == 'customer' %}
+                        Start a conversation with a seller by clicking "Contact Seller" on any product page.
+                        {% elif session.role == 'seller' %}
+                        You'll see messages from customers here when they contact you.
+                        {% elif session.role in ['rider', 'courier'] %}
+                        You'll see messages from customers and sellers about orders here.
+                        {% endif %}
+                    </p>
+                    {% if session.role == 'customer' %}
+                    <a href="{{ url_for('browse') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-search me-2"></i>Browse Products
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .online-indicator-small {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 14px;
+        height: 14px;
+        background: #10b981;
+        border: 2px solid white;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .unread-conversation {
+        background: #f8fafc;
+        border-left: 4px solid #6366f1;
+    }
+    
+    .list-group-item {
+        transition: all 0.3s ease;
+        border-radius: 12px !important;
+        margin-bottom: 0.5rem;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .list-group-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: #fafbfc;
+    }
+    
+    .text-truncate {
+        max-width: 500px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}

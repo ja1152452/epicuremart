@@ -1,0 +1,1071 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+       /* Premium Seller Dashboard Styles */
+    .seller-dashboard {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    /* Header Section */
+    .dashboard-header {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        backdrop-filter: blur(10px);
+        position: relative;
+        z-index: 1000 !important;
+    }
+    
+    .profile-section {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .profile-avatar {
+        position: relative;
+    }
+    
+    .profile-avatar img, .profile-avatar i {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #6C63FF;
+        box-shadow: 0 4px 15px rgba(108,99,255,0.3);
+    }
+    
+    .status-indicator {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 18px;
+        height: 18px;
+        background: #00C9A7;
+        border: 3px solid white;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .seller-info h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin: 0;
+    }
+    
+    .seller-info p {
+        color: #6B7280;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+    
+    .filter-controls {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: center;
+        position: relative;
+        z-index: 10000 !important;
+    }
+    
+    .filter-controls .dropdown {
+        position: relative;
+        z-index: 10001 !important;
+    }
+    
+    .filter-controls .dropdown-menu {
+        z-index: 100000 !important;
+        position: absolute !important;
+    }
+    
+    /* Bootstrap dropdown menu override */
+    .dropdown-menu.show {
+        z-index: 100000 !important;
+        position: absolute !important;
+    }
+    
+    .date-input {
+        border: 2px solid #E5E7EB;
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .date-input:focus {
+        border-color: #6C63FF;
+        box-shadow: 0 0 0 3px rgba(108,99,255,0.1);
+        outline: none;
+    }
+    
+    .filter-btn {
+        border-radius: 12px;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 2px solid #E5E7EB;
+        background: white;
+    }
+    
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* KPI Cards */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .kpi-card {
+        background: white;
+        border-radius: 18px;
+        padding: 1.75rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.8);
+        z-index: 1;
+    }
+    
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    }
+    
+    .kpi-card:hover::before {
+        opacity: 1;
+    }
+    
+    .kpi-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        background: var(--gradient);
+        color: white;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1F2937;
+        margin: 0.5rem 0;
+        line-height: 1;
+    }
+    
+    .kpi-label {
+        color: #6B7280;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin: 0;
+    }
+    
+    .kpi-subtitle {
+        color: #9CA3AF;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Earnings Card */
+    .earnings-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .earnings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .earnings-header h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin: 0;
+    }
+    
+    .earnings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .earnings-item {
+        padding: 1.5rem;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        border: 1px solid #E5E7EB;
+    }
+    
+    .earnings-item.highlight {
+        background: linear-gradient(135deg, #00C9A7 0%, #009B82 100%);
+        color: white;
+        box-shadow: 0 8px 20px rgba(0,201,167,0.3);
+    }
+    
+    .earnings-item h6 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+        opacity: 0.9;
+    }
+    
+    .earnings-item .amount {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin: 0;
+    }
+    
+    .earnings-item small {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+    
+    .progress-bar-custom {
+        height: 8px;
+        background: #E5E7EB;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00C9A7 0%, #00E5B8 100%);
+        border-radius: 10px;
+        transition: width 1s ease;
+    }
+    
+    /* Chart Card */
+    .chart-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .chart-header h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin: 0;
+    }
+    
+    .time-range-select {
+        border: 2px solid #E5E7EB;
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .time-range-select:focus {
+        border-color: #6C63FF;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(108,99,255,0.1);
+    }
+    
+    /* Top Products & Quick Actions */
+    .dual-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .section-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+    
+    .section-header {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1F2937;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .product-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-radius: 12px;
+        background: #F9FAFB;
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .product-item:hover {
+        background: #F3F4F6;
+        transform: translateX(5px);
+    }
+    
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+    }
+    
+    .product-thumb {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #6C63FF 0%, #8B7EFF 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+    }
+    
+    .product-name {
+        font-weight: 600;
+        color: #1F2937;
+        font-size: 0.95rem;
+    }
+    
+    .product-badge {
+        background: linear-gradient(135deg, #6C63FF 0%, #8B7EFF 100%);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    
+    .performance-icon {
+        font-size: 1.2rem;
+        margin-left: 0.5rem;
+    }
+    
+    .performance-icon.up {
+        color: #00C9A7;
+    }
+    
+    .performance-icon.down {
+        color: #FF8C42;
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        gap: 1rem;
+    }
+    
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-radius: 14px;
+        border: 2px solid #E5E7EB;
+        background: white;
+        color: #1F2937;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #6C63FF 0%, #8B7EFF 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 0;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        color: white;
+        border-color: #6C63FF;
+    }
+    
+    .action-btn:hover::before {
+        opacity: 1;
+    }
+    
+    .action-btn i, .action-btn span {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .action-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover .action-icon {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+    
+    /* Recent Orders Table */
+    .orders-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+    
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+    }
+    
+    .table-modern thead th {
+        background: #F9FAFB;
+        color: #6B7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+        border: none;
+    }
+    
+    .table-modern thead th:first-child {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+    
+    .table-modern thead th:last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+    
+    .table-modern tbody tr {
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .table-modern tbody tr:hover {
+        background: #F9FAFB;
+        transform: scale(1.01);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .table-modern tbody td {
+        padding: 1rem;
+        border-top: 1px solid #F3F4F6;
+        border-bottom: 1px solid #F3F4F6;
+    }
+    
+    .table-modern tbody td:first-child {
+        border-left: 1px solid #F3F4F6;
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+    
+    .table-modern tbody td:last-child {
+        border-right: 1px solid #F3F4F6;
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+    
+    .status-badge {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: inline-block;
+    }
+    
+    .status-badge.pending {
+        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        color: #92400E;
+    }
+    
+    .status-badge.ready {
+        background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+        color: #1E40AF;
+    }
+    
+    .status-badge.delivered {
+        background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+        color: #065F46;
+    }
+    
+    .view-btn {
+        background: linear-gradient(135deg, #6C63FF 0%, #8B7EFF 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .view-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(108,99,255,0.4);
+        color: white;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-header {
+            padding: 1.5rem;
+        }
+        
+        .profile-section {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .filter-controls {
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .earnings-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .dual-section {
+            grid-template-columns: 1fr;
+        }
+        
+        .table-modern {
+            font-size: 0.85rem;
+        }
+    }
+    
+    /* Loading Animation */
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+    
+    .loading {
+        animation: shimmer 2s infinite linear;
+        background: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+        background-size: 1000px 100%;
+    }
+</style>
+
+<div class="seller-dashboard">
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap">
+            <div class="profile-section">
+                <div class="profile-avatar">
+                    {% if session.get('profile_picture') %}
+                    <img src="{{ url_for('static', filename='uploads/' + session.get('profile_picture')) }}" alt="Profile">
+                    {% else %}
+                    <i class="fas fa-store-alt fa-3x text-primary d-flex align-items-center justify-content-center"></i>
+                    {% endif %}
+                    <div class="status-indicator"></div>
+                </div>
+                <div class="seller-info">
+                    <h2>{{ shop.name }}</h2>
+                    <p><i class="fas fa-store me-2"></i>Seller Dashboard</p>
+                </div>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadProfilePictureModal">
+                    <i class="fas fa-camera me-1"></i> Change Photo
+                </button>
+            </div>
+            
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <a href="{{ url_for('seller_change_password') }}" 
+                   class="filter-btn" style="background: #17a2b8; color: white; text-decoration: none;">
+                    <i class="fas fa-key me-1"></i> Change Password
+                </a>
+                
+                <a href="{{ url_for('seller_sales_report_export_pdf', start_date=start_date, end_date=end_date) }}" 
+                   class="filter-btn" style="background: #dc3545; color: white; text-decoration: none;">
+                    <i class="fas fa-file-pdf me-1"></i> Export PDF
+                </a>
+                
+                <form method="GET" class="d-flex gap-2 align-items-center">
+                    <input type="date" name="start_date" class="date-input" 
+                           value="{{ start_date if start_date else '' }}" 
+                           placeholder="Start Date">
+                    <input type="date" name="end_date" class="date-input" 
+                           value="{{ end_date if end_date else '' }}" 
+                           placeholder="End Date">
+                    <button type="submit" class="filter-btn">
+                        <i class="fas fa-search me-1"></i> Filter
+                    </button>
+                </form>
+                
+                <div class="dropdown">
+                    <button class="filter-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-calendar me-1"></i>
+                        {% if time_filter == 'day' %}Today
+                        {% elif time_filter == 'week' %}This Week
+                        {% elif time_filter == 'month' %}This Month
+                        {% elif time_filter == 'year' %}This Year
+                        {% elif time_filter == 'custom' %}Custom
+                        {% else %}All Time{% endif %}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="?filter=day">Today</a></li>
+                        <li><a class="dropdown-item" href="?filter=week">This Week</a></li>
+                        <li><a class="dropdown-item" href="?filter=month">This Month</a></li>
+                        <li><a class="dropdown-item" href="?filter=year">This Year</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="?filter=all">All Time</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="--gradient: linear-gradient(135deg, #6C63FF, #8B7EFF);">
+            <div class="kpi-icon" style="background: linear-gradient(135deg, #6C63FF, #8B7EFF);">
+                <i class="fas fa-box"></i>
+            </div>
+            <div class="kpi-value">{{ total_products }}</div>
+            <div class="kpi-label">Total Products</div>
+            <div class="kpi-subtitle">In your catalog</div>
+        </div>
+        
+        <div class="kpi-card" style="--gradient: linear-gradient(135deg, #00C9A7, #009B82);">
+            <div class="kpi-icon" style="background: linear-gradient(135deg, #00C9A7, #009B82);">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div class="kpi-value">{{ total_orders }}</div>
+            <div class="kpi-label">Total Orders</div>
+            <div class="kpi-subtitle">All time orders</div>
+        </div>
+        
+        <div class="kpi-card" style="--gradient: linear-gradient(135deg, #FF8C42, #FF6B35);">
+            <div class="kpi-icon" style="background: linear-gradient(135deg, #FF8C42, #FF6B35);">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="kpi-value">{{ pending_orders }}</div>
+            <div class="kpi-label">Pending Orders</div>
+            <div class="kpi-subtitle">Awaiting action</div>
+        </div>
+        
+        <div class="kpi-card" style="--gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+            <div class="kpi-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                <i class="fas fa-peso-sign"></i>
+            </div>
+            <div class="kpi-value">₱{{ "%.2f"|format(total_revenue) }}</div>
+            <div class="kpi-label">Total Revenue</div>
+            <div class="kpi-subtitle">After commission</div>
+        </div>
+        
+        <div class="kpi-card" style="--gradient: linear-gradient(135deg, #3b82f6, #2563eb);">
+            <div class="kpi-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="kpi-value">₱{{ "%.2f"|format(total_sales) }}</div>
+            <div class="kpi-label">Total Sales</div>
+            <div class="kpi-subtitle">Before commission</div>
+        </div>
+        
+        <div class="kpi-card" style="--gradient: linear-gradient(135deg, #ec4899, #db2777);">
+            <div class="kpi-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div class="kpi-value">₱{{ "%.2f"|format(avg_order_value) }}</div>
+            <div class="kpi-label">Avg Order Value</div>
+            <div class="kpi-subtitle">Per delivered order</div>
+        </div>
+    </div>
+
+
+
+    <!-- Sales Performance Chart -->
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3><i class="fas fa-chart-area me-2"></i>Sales Performance</h3>
+            <select class="time-range-select" onchange="window.location.href='?filter=' + this.value">
+                <option value="week" {% if time_filter == 'week' %}selected{% endif %}>Last 7 Days</option>
+                <option value="month" {% if time_filter == 'month' %}selected{% endif %}>Last 30 Days</option>
+                <option value="all" {% if not time_filter or time_filter == 'all' %}selected{% endif %}>All Time</option>
+            </select>
+        </div>
+        <div style="position: relative; height: 300px;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Top Products & Quick Actions -->
+    <div class="dual-section">
+        <!-- Top Selling Products -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-trophy" style="color: #FF8C42;"></i>
+                <span>Top Selling Products</span>
+            </div>
+            
+            {% if top_products %}
+                {% for product in top_products %}
+                <div class="product-item">
+                    <div class="product-info">
+                        <div class="product-thumb">
+                            {{ product.name[0] }}
+                        </div>
+                        <div class="product-name">{{ product.name }}</div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="product-badge">
+                            {{ product.total_sold }} sold
+                        </div>
+                        <i class="fas fa-arrow-up performance-icon up"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No sales data available yet</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-rocket" style="color: #6C63FF;"></i>
+                <span>Quick Actions</span>
+            </div>
+            
+            <div class="quick-actions">
+                <a href="{{ url_for('create_product') }}" class="action-btn">
+                    <div class="action-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <span>Add New Product</span>
+                </a>
+                
+                <a href="{{ url_for('seller_products') }}" class="action-btn">
+                    <div class="action-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <span>Manage Products</span>
+                </a>
+                
+                <a href="{{ url_for('seller_orders') }}" class="action-btn">
+                    <div class="action-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <span>View Orders</span>
+                </a>
+                
+                <a href="{{ url_for('messages_inbox') }}" class="action-btn">
+                    <div class="action-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <span>Messages</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders Table -->
+    <div class="orders-card">
+        <div class="section-header">
+            <i class="fas fa-receipt" style="color: #6C63FF;"></i>
+            <span>Recent Orders</span>
+        </div>
+        
+        {% if recent_orders %}
+        <div class="table-responsive">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td><strong>{{ order.order_number }}</strong></td>
+                        <td>{{ order.customer.full_name }}</td>
+                        <td><strong>₱{{ "%.2f"|format(order.total_amount) }}</strong></td>
+                        <td>
+                            <span class="status-badge 
+                                {% if order.status == 'PENDING_PAYMENT' %}pending
+                                {% elif order.status == 'READY_FOR_PICKUP' %}ready
+                                {% elif order.status == 'DELIVERED' %}delivered
+                                {% else %}pending{% endif %}">
+                                {{ order.status.replace('_', ' ') }}
+                            </span>
+                        </td>
+                        <td>{% if order.created_at %}{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}{% else %}N/A{% endif %}</td>
+                        <td>
+                            <a href="{{ url_for('seller_order_detail', order_id=order.id) }}" class="view-btn">
+                                <i class="fas fa-eye me-1"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+            <p class="text-muted mb-0">No orders yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Sales Performance Chart with modern styling
+const salesData = {{ revenue_chart_data | tojson }};
+const labels = salesData.map(d => d.label);
+const values = salesData.map(d => d.value);
+
+const ctx = document.getElementById('salesChart').getContext('2d');
+
+// Create gradient
+const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+gradient.addColorStop(0, 'rgba(108, 99, 255, 0.8)');
+gradient.addColorStop(1, 'rgba(108, 99, 255, 0.1)');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Revenue (₱)',
+            data: values,
+            backgroundColor: gradient,
+            borderColor: '#6C63FF',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointBackgroundColor: '#6C63FF',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointHoverRadius: 8,
+            pointHoverBackgroundColor: '#6C63FF',
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        return '₱' + context.parsed.y.toFixed(2);
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)',
+                    drawBorder: false
+                },
+                ticks: {
+                    color: '#6B7280',
+                    font: {
+                        size: 12,
+                        weight: '500'
+                    },
+                    callback: function(value) {
+                        return '₱' + value.toFixed(0);
+                    },
+                    padding: 10
+                }
+            },
+            x: {
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    color: '#6B7280',
+                    font: {
+                        size: 12,
+                        weight: '500'
+                    },
+                    padding: 10
+                }
+            }
+        },
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        animation: {
+            duration: 1500,
+            easing: 'easeInOutQuart'
+        }
+    }
+});
+
+// Animate KPI cards on load
+document.addEventListener('DOMContentLoaded', function() {
+    const kpiCards = document.querySelectorAll('.kpi-card');
+    kpiCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 10);
+        }, index * 100);
+    });
+    
+    // Animate progress bar
+    setTimeout(() => {
+        const progressFill = document.querySelector('.progress-fill');
+        if (progressFill) {
+            progressFill.style.transition = 'width 1.5s ease-out';
+        }
+    }, 500);
+});
+</script>
+
+<!-- Upload Profile Picture Modal -->
+<div class="modal fade" id="uploadProfilePictureModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-camera me-2"></i>Upload Business Icon / Profile Picture
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('upload_profile_picture') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Choose Image *</label>
+                        <input type="file" name="profile_picture" class="form-control" 
+                               accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" required>
+                        <small class="form-text text-muted">
+                            Supported formats: PNG, JPG, JPEG, GIF, WEBP. Max size: 5MB
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-1"></i>Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}Support Dashboard - Epicuremart{% endblock %}
+{% block content %}
+<style>
+.support-dashboard-page {
+  padding: 2.5rem 0 4rem;
+}
+.support-dashboard-page .support-hero {
+  background: linear-gradient(135deg, #5C3BFF 0%, #7F6BFF 100%);
+  border-radius: 2rem;
+  padding: 2rem 2.5rem;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  box-shadow: 0 24px 80px rgba(88, 52, 255, 0.16);
+}
+.support-dashboard-page .support-hero h1 {
+  font-size: 2.35rem;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+.support-dashboard-page .support-hero p {
+  color: rgba(255,255,255,0.86);
+  font-size: 1rem;
+  max-width: 720px;
+}
+.support-dashboard-page .support-summary {
+  margin-bottom: 1.75rem;
+}
+.support-dashboard-page .summary-card {
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  min-height: 140px;
+}
+.support-dashboard-page .summary-label {
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.75rem;
+}
+.support-dashboard-page .summary-value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #111827;
+}
+.support-dashboard-page .page-card {
+  border-radius: 1.8rem;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.08);
+}
+.support-dashboard-page .page-card-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1.4rem 1.75rem;
+}
+.support-dashboard-page .page-card-header h4 {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #111827;
+}
+.support-dashboard-page .page-card-body {
+  padding: 0;
+}
+.support-dashboard-page .table {
+  margin-bottom: 0;
+}
+.support-dashboard-page .table thead th {
+  border-bottom: 1px solid #e5e7eb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #4b5563;
+  font-weight: 700;
+  background: #f8fafc;
+}
+.support-dashboard-page .table tbody tr {
+  border-color: #e5e7eb;
+}
+.support-dashboard-page .table tbody tr:hover {
+  background: #f8fafc;
+}
+.support-dashboard-page .table td,
+.support-dashboard-page .table th {
+  vertical-align: middle;
+  padding: 1.25rem 1rem;
+}
+.support-dashboard-page .btn-open-chat {
+  border-radius: 999px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 700;
+  box-shadow: 0 15px 35px rgba(99, 102, 241, 0.18);
+}
+.support-dashboard-page .empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #6b7280;
+}
+.support-dashboard-page .empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+</style>
+<div class="container-fluid support-dashboard-page">
+  <section class="support-hero">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-4">
+      <div>
+        <h1><i class="fas fa-headset"></i> Support Dashboard</h1>
+        <p>View active conversations, manage unread support requests, and quickly open chat threads from one clean workspace.</p>
+      </div>
+      <div class="text-lg-end">
+        <span class="badge bg-white text-dark fw-bold py-2 px-3 rounded-pill">Support Access</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="support-summary">
+    <div class="row g-3">
+      <div class="col-sm-4">
+        <div class="summary-card">
+          <div class="summary-label">Total Conversations</div>
+          <div class="summary-value">{{ conversations|length }}</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="summary-card">
+          <div class="summary-label">Unread Messages</div>
+          <div class="summary-value">{{ conversations|selectattr('unread_count', 'gt', 0)|list|length }}</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="summary-card">
+          <div class="summary-label">Active Agents</div>
+          <div class="summary-value">{{ active_agents_count }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="support-table-section">
+    <div class="card page-card">
+      <div class="card-header page-card-header">
+        <h4><i class="fas fa-comments"></i> Conversation List</h4>
+      </div>
+      <div class="card-body page-card-body">
+          {% if conversations %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Role</th>
+                  <th>Last Message</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in conversations %}
+                <tr class="{% if item.unread_count > 0 %}table-warning{% endif %}">
+                  <td>
+                    <strong>{{ item.user.full_name or item.user.email }}</strong>
+                    {% if item.unread_count > 0 %}
+                    <span class="badge bg-danger ms-2">{{ item.unread_count }} new</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge bg-info text-dark">{{ item.user.role|title }}</span>
+                  </td>
+                  <td>
+                    {% if item.last_message %}
+                    <div class="text-truncate" style="max-width: 300px">
+                      {{ item.last_message.message_text }}
+                    </div>
+                    {% else %}
+                    <em class="text-muted">No messages yet</em>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <small class="text-muted">
+                      {% if item.conversation.last_message_at %}
+                      {{ item.conversation.last_message_at.strftime('%b %d, %I:%M %p') }}
+                      {% else %}
+                      —
+                      {% endif %}
+                    </small>
+                  </td>
+                  <td>
+                    {% if item.unread_count > 0 %}
+                    <span class="badge bg-warning text-dark">New</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Read</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{{ url_for('support_conversation', conversation_id=item.conversation.id) }}" class="btn btn-sm btn-primary btn-open-chat">
+                      <i class="fas fa-comments"></i> Open Chat
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No Support Conversations Yet</h5>
+            <p class="text-muted">
+              When users contact support, their conversations will appear here.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto-refresh every 10 seconds
+  setInterval(function () {
+    location.reload();
+  }, 10000);
+</script>
+{% endblock %}

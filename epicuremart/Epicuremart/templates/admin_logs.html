@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include 'components/admin_sidebar.html' %}
+<div class="admin-main-content">
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-file-alt"></i> Audit Logs</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Entity</th>
+                            <th>Details</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs.items %}
+                        <tr>
+                            <td><small>{% if log.created_at %}{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}N/A{% endif %}</small></td>
+                            <td>{{ log.user.email if log.user else 'System' }}</td>
+                            <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+                            <td>{{ log.entity_type }} #{{ log.entity_id if log.entity_id else '' }}</td>
+                            <td>{{ log.details }}</td>
+                            <td><small>{{ log.ip_address }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if logs.has_prev or logs.has_next %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if logs.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_logs', page=logs.prev_num) }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">Page {{ logs.page }} of {{ logs.pages }}</span>
+                    </li>
+                    
+                    {% if logs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_logs', page=logs.next_num) }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

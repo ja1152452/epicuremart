@@ -1,0 +1,21 @@
+965:         ]
+966: 
+967:     summary_table = Table(summary_data, colWidths=[3*inch, 3*inch])
+968:     summary_table.setStyle(TableStyle([
+969:         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2ecc71')),
+970:         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+971:         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+972:         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+973:         ('FONTSIZE', (0, 0), (-1, 0), 14),
+974:         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+975:         ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),
+976:         ('GRID', (0, 0), (-1, -1), 1, colors.black)
+977:     ]))
+978:     elements.append(summary_table)
+979: 
+980:     # Best Selling Products table (admin only)
+981:     if user_role == 'admin' and top_products:
+982:         from reportlab.lib.styles import getSampleStyleSheet
+983:         from reportlab.lib.enums import TA_CENTER
+984:         from reportlab.platypus import Spacer
+985:         heading_style2 = ParagraphStyle('H2', parent=styles['Heading2'], fontSize=13,
