@@ -627,6 +627,7 @@ def _send_email_task(app, to, subject, body):
 
 def send_email(to, subject, body):
     """Dispatch email in background thread — returns immediately"""
+    # Siguraduhin na ang _mail_executor.submit ay may eksaktong 4 na spaces bago ito
     _mail_executor.submit(_send_email_task, app, to, subject, body)
     return True
 
