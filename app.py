@@ -1419,7 +1419,7 @@ def register():
         print(f"\n{'='*60}")
         print(f"VERIFICATION CODE FOR {user.email}")
         print(f"CODE: {verification_code}")
-        print(f"Email sent: {'[SUCCESS] YES' if email_sent else '[ERROR] NO'}")
+        print(f"Email task submitted (check logs below for actual result)")
         print(f"{'='*60}\n")
         
         # Create address entry if provided
