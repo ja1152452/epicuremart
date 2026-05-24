@@ -1253,8 +1253,8 @@ def register():
             return redirect(url_for('register'))
         
         # Generate verification code for ALL users (web and Flutter)
-        verification_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
-        verification_expires = datetime.utcnow() + timedelta(hours=48)
+        verification_code = str(secrets.randbelow(1000000)).zfill(6)
+        verification_expires = get_philippines_time() + timedelta(hours=24)
         is_verified = False  # All users need verification
         
         # Create user record in database
@@ -1401,11 +1401,8 @@ def register():
         # Send verification email with 6-digit CODE
         email_sent = send_email(
             user.email,
-            'Email Verification Code - Epicuremart',
-            f'Welcome to Epicuremart!\n\n'
-            f'Your email verification code is: {verification_code}\n\n'
-            f'This code will expire in 48 hours.\n\n'
-            f'Please enter this code on the verification page to complete your registration.'
+            'Email Verification',
+            f'Your verification code is: {verification_code}'
         )
         
         # ALWAYS print verification code for debugging
