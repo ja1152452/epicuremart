@@ -612,35 +612,28 @@ def log_action(action, entity_type=None, entity_id=None, details=None):
 def _send_email_task(app, to, subject, body):
     """Runs in background thread — never call directly"""
     with app.app_context():
-        resend_api_key = os.environ.get('RESEND_API_KEY')
-        print(f"[EMAIL DEBUG] RESEND_API_KEY set: {bool(resend_api_key)}, sending to: {to}")
-        if resend_api_key:
-            # Use Resend API (works on Render free tier)
-            try:
-                import resend
-                resend.api_key = resend_api_key
-                resend.Emails.send({
-                    'from': 'Epicuremart <onboarding@resend.dev>',
-                    'to': [to],
-                    'subject': subject,
-                    'text': body,
-                })
-                print(f"[SUCCESS] Email sent via Resend to {to}")
-            except Exception:
-                logging.exception("[ERROR] Failed to send email via Resend to %s", to)
-        else:
-            # Fallback: Flask-Mail
-            try:
-                msg = MailMessage(
-                    subject=subject,
-                    recipients=[to],
-                    body=body,
-                    sender=app.config['MAIL_DEFAULT_SENDER']
-                )
-                mail.send(msg)
-                print(f"[SUCCESS] Email sent via Flask-Mail to {to}")
-            except Exception:
-                logging.exception("[ERROR] Failed to send email via Flask-Mail to %s", to)
+        import smtplib
+        import ssl
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+
+        gmail_user = app.config.get('MAIL_USERNAME')
+        gmail_pass = app.config.get('MAIL_PASSWORD')
+
+        try:
+            msg = MIMEMultipart()
+            msg['From'] = gmail_user
+            msg['To'] = to
+            msg['Subject'] = subject
+            msg.attach(MIMEText(body, 'plain'))
+
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
+                server.login(gmail_user, gmail_pass)
+                server.sendmail(gmail_user, to, msg.as_string())
+            print(f"[SUCCESS] Email sent via Gmail SMTP_SSL to {to}")
+        except Exception:
+            logging.exception("[ERROR] Failed to send email to %s", to)
 
 
 def send_email(to, subject, body):
