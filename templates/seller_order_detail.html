@@ -215,12 +215,49 @@
                             {% endif %}
                         </div>
                     </div>
+                    
+                    <!-- Courier Documents -->
+                    {% if courier_info.business_permit or courier_info.id_document %}
+                    <div class="mt-3 pt-3 border-top">
+                        <h6 class="mb-2"><i class="fas fa-file-alt me-1"></i>Documents</h6>
+                        {% if courier_info.business_permit %}
+                        <div class="mb-2">
+                            <small class="text-muted">Business Permit:</small>
+                            <br>
+                            {% if courier_info.business_permit.startswith('http') %}
+                                <a href="{{ courier_info.business_permit }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('static', filename='uploads/' + courier_info.business_permit) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% if courier_info.id_document %}
+                        <div class="mb-2">
+                            <small class="text-muted">ID Document:</small>
+                            <br>
+                            {% if courier_info.id_document.startswith('http') %}
+                                <a href="{{ courier_info.id_document }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('static', filename='uploads/' + courier_info.id_document) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                     {% else %}
                     <p class="mb-2">
                         <strong>Courier:</strong> {{ order.courier.company_name or order.courier.full_name or order.courier.email }}
                     </p>
                     {% endif %}
-                    <a href="{{ url_for('start_courier_conversation', order_id=order.id) }}" class="btn btn-primary w-100">
+                    <a href="{{ url_for('start_courier_conversation', order_id=order.id) }}" class="btn btn-primary w-100 mt-3">
                         <i class="fas fa-comment-dots"></i> Open Chat
                     </a>
                     <small class="text-muted d-block mt-2">
@@ -269,6 +306,43 @@
                         <span class="badge bg-warning text-dark">
                             <i class="fas fa-star"></i> {{ rider_info.avg_rating }} ({{ rider_info.total_feedbacks }} reviews)
                         </span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Rider Documents -->
+                    {% if rider_info.business_permit or rider_info.id_document %}
+                    <div class="mt-3 pt-3 border-top">
+                        <h6 class="mb-2"><i class="fas fa-file-alt me-1"></i>Documents</h6>
+                        {% if rider_info.business_permit %}
+                        <div class="mb-2">
+                            <small class="text-muted">Business Permit:</small>
+                            <br>
+                            {% if rider_info.business_permit.startswith('http') %}
+                                <a href="{{ rider_info.business_permit }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('static', filename='uploads/' + rider_info.business_permit) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% if rider_info.id_document %}
+                        <div class="mb-2">
+                            <small class="text-muted">ID Document:</small>
+                            <br>
+                            {% if rider_info.id_document.startswith('http') %}
+                                <a href="{{ rider_info.id_document }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('static', filename='uploads/' + rider_info.id_document) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                     
@@ -381,36 +455,72 @@ document.addEventListener('DOMContentLoaded', function() {
     const riderSelect = document.getElementById('riderAssign');
     
     if (courierSelect && riderSelect) {
-        const allRiderOptions = Array.from(riderSelect.options);
+        let allRiders = []; // Store all riders fetched from API
+        const selectedCourierId = courierSelect.value;
         
-        courierSelect.addEventListener('change', function() {
-            const selectedCourierId = this.value;
-            
-            // Clear current options except first one
-            riderSelect.innerHTML = '<option value="">-- Select Rider --</option>';
-            
-            // If no courier selected, show all riders
-            if (!selectedCourierId) {
-                allRiderOptions.slice(1).forEach(option => {
-                    riderSelect.appendChild(option.cloneNode(true));
-                });
-                return;
-            }
-            
-            // Fetch riders for selected courier via AJAX
-            fetch(`/api/riders-by-courier/${selectedCourierId}`)
+        // Function to load all riders from server
+        function loadAllRiders() {
+            return fetch('/api/get-all-riders')
                 .then(response => response.json())
                 .then(data => {
-                    data.riders.forEach(rider => {
-                        const option = document.createElement('option');
-                        option.value = rider.id;
-                        option.textContent = `${rider.full_name}${rider.vehicle_type ? ' (' + rider.vehicle_type + ')' : ''}`;
-                        riderSelect.appendChild(option);
-                    });
+                    allRiders = data.riders || [];
+                    return allRiders;
                 })
                 .catch(error => {
                     console.error('Error fetching riders:', error);
+                    return [];
                 });
+        }
+        
+        // Function to populate rider dropdown
+        function populateRiders(riders) {
+            riderSelect.innerHTML = '<option value="">-- Select Rider --</option>';
+            riders.forEach(rider => {
+                const option = document.createElement('option');
+                option.value = rider.id;
+                option.textContent = `${rider.full_name}${rider.vehicle_type ? ' (' + rider.vehicle_type + ')' : ''}`;
+                option.dataset.courier = rider.courier_id || '';
+                riderSelect.appendChild(option);
+            });
+        }
+        
+        // Load all riders on page load
+        loadAllRiders().then(riders => {
+            if (riders.length === 0 && selectedCourierId) {
+                // If no riders from API, try to fetch by selected courier
+                fetch(`/api/riders-by-courier/${selectedCourierId}`)
+                    .then(response => response.json())
+                    .then(data => populateRiders(data.riders || []))
+                    .catch(error => console.error('Error fetching riders:', error));
+            } else if (riders.length > 0) {
+                // Show all riders if none are pre-selected
+                if (!selectedCourierId) {
+                    populateRiders(riders);
+                } else {
+                    // Filter by selected courier
+                    const filteredRiders = riders.filter(r => r.courier_id === selectedCourierId);
+                    populateRiders(filteredRiders);
+                }
+            }
+        });
+        
+        // Handle courier change
+        courierSelect.addEventListener('change', function() {
+            const selectedCourierId = this.value;
+            
+            if (!selectedCourierId) {
+                // Show all riders when no courier is selected
+                populateRiders(allRiders);
+            } else {
+                // Fetch and show riders for selected courier
+                fetch(`/api/riders-by-courier/${selectedCourierId}`)
+                    .then(response => response.json())
+                    .then(data => populateRiders(data.riders || []))
+                    .catch(error => {
+                        console.error('Error fetching riders:', error);
+                        populateRiders([]);
+                    });
+            }
         });
     }
 });

@@ -2784,7 +2784,30 @@ def get_riders_by_courier(courier_id):
             'full_name': rider.full_name or rider.email,
             'email': rider.email,
             'phone': rider.phone,
-            'vehicle_type': rider.vehicle_type
+            'vehicle_type': rider.vehicle_type,
+            'courier_id': str(rider.courier_id) if rider.courier_id else None
+        })
+    
+    return jsonify({'riders': riders_data})
+
+
+@app.route('/api/get-all-riders', methods=['GET'])
+def get_all_riders():
+    """Get list of all approved riders"""
+    riders = User.query.filter_by(
+        role='rider',
+        is_approved=True
+    ).all()
+    
+    riders_data = []
+    for rider in riders:
+        riders_data.append({
+            'id': str(rider.id),
+            'full_name': rider.full_name or rider.email,
+            'email': rider.email,
+            'phone': rider.phone,
+            'vehicle_type': rider.vehicle_type,
+            'courier_id': str(rider.courier_id) if rider.courier_id else None
         })
     
     return jsonify({'riders': riders_data})
@@ -3498,6 +3521,8 @@ def seller_order_detail(order_id):
             'email': rider.email,
             'phone': rider.phone,
             'profile_picture': rider.profile_picture,
+            'id_document': rider.id_document,
+            'business_permit': rider.business_permit,
             'avg_rating': round(avg_rating, 1),
             'total_feedbacks': len(feedbacks),
             'recent_feedbacks': recent_feedbacks
@@ -3514,7 +3539,9 @@ def seller_order_detail(order_id):
             'email': courier.email,
             'phone': courier.phone,
             'profile_picture': courier.profile_picture,
-            'vehicle_type': courier.vehicle_type
+            'vehicle_type': courier.vehicle_type,
+            'id_document': courier.id_document,
+            'business_permit': courier.business_permit
         }
     
     return render_template('seller_order_detail.html', 
