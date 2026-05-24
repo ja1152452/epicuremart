@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+.badge-amber   { background-color: #F59E0B !important; color: #000 !important; }
+.badge-indigo  { background-color: #6366F1 !important; color: #fff !important; }
+.badge-blue    { background-color: #3B82F6 !important; color: #fff !important; }
+.badge-emerald { background-color: #10B981 !important; color: #fff !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-clipboard-list"></i> {{ title }}</h2>
+
+    {% if orders %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Shop</th>
+                            <th>Customer</th>
+                            <th>Delivery Address</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><strong>{{ order.order_number }}</strong></td>
+                            <td>{{ order.shop.name }}</td>
+                            <td>
+                                {{ order.customer.full_name }}<br>
+                                <small>{{ order.customer.phone }}</small>
+                            </td>
+                            <td>
+                                {{ order.delivery_address.full_address }}<br>
+                                <small>{{ order.delivery_address.city }}</small>
+                            </td>
+                            <td>
+                                {% if order.status == 'READY_FOR_PICKUP' %}
+                                <span class="badge" style="background-color:#F59E0B;color:#000;">READY FOR PICKUP</span>
+                                {% elif order.status == 'IN_TRANSIT_TO_RIDER' %}
+                                <span class="badge" style="background-color:#6366F1;color:#fff;">IN TRANSIT TO RIDER</span>
+                                {% elif order.status == 'OUT_FOR_DELIVERY' %}
+                                <span class="badge" style="background-color:#3B82F6;color:#fff;">OUT FOR DELIVERY</span>
+                                {% elif order.status == 'DELIVERED' %}
+                                <span class="badge" style="background-color:#10B981;color:#fff;">DELIVERED</span>
+                                {% elif order.status == 'CANCELLED' %}
+                                <span class="badge" style="background-color:#EF4444;color:#fff;">CANCELLED</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ order.status.replace('_', ' ') }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if order.status == 'IN_TRANSIT_TO_RIDER' %}
+                                <a href="{{ url_for('courier_handoff_qr', order_id=order.id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-qrcode"></i> Handoff
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No orders in your manifest at the moment.
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('courier_dashboard') }}" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}Epicuremart - Premium Food Marketplace{% endblock %}
+    </title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary: #8b5cf6;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #06b6d4;
+        --dark: #1e293b;
+        --light: #f8fafc;
+        --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+      }
+
+      /* Navigation */
+      .navbar {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 0.75rem 0;
+        box-shadow: var(--shadow-sm);
+        position: sticky;
+        top: 0;
+        z-index: 1030;
+        transition: all 0.3s ease;
+      }
+
+      .navbar-scrolled {
+        box-shadow: var(--shadow-lg);
+        padding: 0.5rem 0;
+      }
+
+      .navbar-brand {
+        font-weight: 800;
+        font-size: 1.75rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        transition: transform 0.3s ease;
+      }
+
+      .navbar-brand:hover {
+        transform: scale(1.05);
+      }
+
+      .nav-link {
+        font-weight: 500;
+        color: var(--dark) !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .nav-link:hover {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary) !important;
+      }
+
+      .nav-link.active {
+        background: var(--gradient-primary);
+        color: white !important;
+      }
+      
+      .nav-link .badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+        animation: pulse 2s infinite;
+      }
+
+      /* Buttons */
+      .btn {
+        font-weight: 600;
+        padding: 0.625rem 1.5rem;
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+        border: none;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+      }
+
+      .btn-primary {
+        background: var(--gradient-primary);
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+      }
+
+      .btn-success {
+        background: var(--gradient-success);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+      }
+
+      .btn-lg {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+      }
+
+      /* Cards */
+      .card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: white;
+      }
+
+      .card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+      }
+
+      .card-header {
+        background: var(--gradient-primary);
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 1.25rem;
+      }
+
+      /* Product Cards */
+      .product-card {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .product-image {
+        width: 100%;
+        height: 240px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .product-card:hover .product-image {
+        transform: scale(1.1);
+      }
+
+      .product-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .badge-status {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.8;
+        }
+      }
+
+      /* Stats Cards */
+      .stat-card {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: var(--shadow-lg);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        transition: all 0.5s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+      }
+
+      .stat-card:hover::before {
+        top: -25%;
+        right: -25%;
+      }
+
+      .stat-card h3 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* QR Code Container */
+      .qr-code-container {
+        text-align: center;
+        padding: 2.5rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 1rem;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .qr-code-container img {
+        border-radius: 1rem;
+        box-shadow: var(--shadow-lg);
+        max-width: 300px;
+      }
+
+      /* Forms */
+      .form-control,
+      .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      }
+
+      .form-label {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+      }
+
+      /* Alerts */
+      .alert {
+        border: none;
+        border-radius: 0.75rem;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        box-shadow: var(--shadow-sm);
+        animation: slideInDown 0.5s ease;
+      }
+
+      @keyframes slideInDown {
+        from {
+          transform: translateY(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      /* Tables */
+      .table {
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+      }
+
+      .table thead th {
+        border: none;
+        background: var(--light);
+        color: var(--dark);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 1rem;
+      }
+
+      .table tbody tr {
+        background: white;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .table tbody tr:hover {
+        transform: scale(1.02);
+        box-shadow: var(--shadow-md);
+      }
+
+      .table tbody td {
+        border: none;
+        padding: 1rem;
+        vertical-align: middle;
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        padding: 3rem 0;
+        animation: fadeIn 0.5s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* Hero Section */
+      .hero-section-new {
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #7c3aed 50%,
+          #a855f7 100%
+        );
+        color: white;
+        padding: 5rem 3rem;
+        border-radius: 2rem;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.25);
+      }
+
+      .hero-section-new::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.15) 0%,
+          transparent 70%
+        );
+        animation: float 8s ease-in-out infinite;
+      }
+
+      .hero-section-new::after {
+        content: "";
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        animation: float 6s ease-in-out infinite reverse;
+      }
+
+      .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .hero-subtitle {
+        font-size: 1.25rem;
+        font-weight: 400;
+        line-height: 1.6;
+        opacity: 0.95;
+        max-width: 500px;
+      }
+
+      .btn-hero-primary {
+        background: white;
+        color: #6366f1;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        border-radius: 0.75rem;
+        border: none;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+      }
+
+      .btn-hero-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        background: #f8fafc;
+        color: #4f46e5;
+      }
+
+      .btn-hero-secondary {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        border-radius: 0.75rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+      }
+
+      .btn-hero-secondary:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+      }
+
+      .stats-row {
+        display: flex;
+        gap: 3rem;
+        flex-wrap: wrap;
+      }
+
+      .stat-item {
+        text-align: left;
+      }
+
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        font-size: 0.95rem;
+        opacity: 0.85;
+        font-weight: 500;
+      }
+
+      .hero-basket {
+        animation: floatBasket 6s ease-in-out infinite;
+        filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+      }
+
+      @keyframes floatBasket {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+        25% {
+          transform: translateY(-15px) rotate(2deg);
+        }
+        50% {
+          transform: translateY(0) rotate(-1deg);
+        }
+        75% {
+          transform: translateY(-10px) rotate(1deg);
+        }
+      }
+
+      @media (max-width: 992px) {
+        .hero-title {
+          font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+          font-size: 1.1rem;
+        }
+
+        .stats-row {
+          gap: 2rem;
+        }
+
+        .stat-number {
+          font-size: 2rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .hero-section-new {
+          padding: 3rem 2rem;
+        }
+
+        .hero-title {
+          font-size: 2rem;
+        }
+
+        .btn-hero-primary,
+        .btn-hero-secondary {
+          padding: 0.875rem 1.5rem;
+          font-size: 0.85rem;
+        }
+      }
+
+      /* Category Pills */
+      .category-pill {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: white;
+        border-radius: 2rem;
+        margin: 0.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .category-pill:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+        background: var(--gradient-primary);
+        color: white;
+      }
+
+      /* Footer */
+      footer {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 3rem 0 1.5rem;
+        margin-top: auto;
+      }
+
+      footer a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      footer a:hover {
+        color: white;
+      }
+
+      /* Loading Animation */
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .hero-section h1 {
+          font-size: 2rem;
+        }
+
+        .stat-card h3 {
+          font-size: 2rem;
+        }
+
+        .navbar-brand {
+          font-size: 1.25rem;
+        }
+        
+        .navbar {
+          padding: 0.5rem 0;
+        }
+        
+        .nav-link {
+          padding: 0.75rem 1rem !important;
+          margin: 0.25rem 0;
+        }
+        
+        .navbar-nav {
+          margin-top: 1rem;
+        }
+        
+        .navbar-collapse {
+          background: white;
+          padding: 1rem;
+          border-radius: 0.5rem;
+          margin-top: 0.5rem;
+          box-shadow: var(--shadow-md);
+        }
+      }
+      
+      @media (max-width: 576px) {
+        .hero-title {
+          font-size: 1.75rem !important;
+        }
+        
+        .btn-lg {
+          padding: 0.75rem 1.5rem;
+          font-size: 0.9rem;
+        }
+      }
+
+      /* Dropdown */
+      .dropdown-menu {
+        border: none;
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-lg);
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .dropdown-item {
+        border-radius: 0.5rem;
+        padding: 0.625rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .dropdown-item:hover {
+        background: var(--light);
+        color: var(--primary);
+      }
+
+      /* Price Display */
+      .price {
+        font-size: 1.75rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Modal Enhancements */
+      .modal-content {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: var(--shadow-xl);
+      }
+
+      .modal-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+      }
+
+      .modal-body {
+        padding: 2rem;
+      }
+
+      /* Smooth Scroll */
+      html {
+        scroll-behavior: smooth;
+      }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+          <i class="fas fa-shopping-basket"></i> Epicuremart
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('browse') }}">
+                <i class="fas fa-store"></i> Browse
+              </a>
+            </li>
+            {% if session.user_id %} {% if session.role == 'admin' and not session.is_support_agent %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            {% elif session.role == 'seller' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('seller_dashboard') }}">
+                <i class="fas fa-store-alt"></i> My Shop
+              </a>
+            </li>
+            {% elif session.role == 'courier' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('courier_dashboard') }}">
+                <i class="fas fa-box"></i> Pickups
+              </a>
+            </li>
+            {% elif session.role == 'rider' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('rider_dashboard') }}">
+                <i class="fas fa-motorcycle"></i> Deliveries
+              </a>
+            </li>
+            {% endif %} {% endif %}
+          </ul>
+          <ul class="navbar-nav">
+            {% if session.user_id %} {% if session.role == 'customer' %}
+            <li class="nav-item">
+              <a class="nav-link position-relative" href="{{ url_for('messages_inbox') }}">
+                <i class="fas fa-comments"></i> Messages
+                {% if unread_messages > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ unread_messages }}
+                </span>
+                {% endif %}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link position-relative" href="{{ url_for('view_cart') }}">
+                <i class="fas fa-shopping-cart"></i> Cart
+                {% if cart_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                  {{ cart_count }}
+                </span>
+                {% endif %}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('customer_orders') }}">
+                <i class="fas fa-receipt"></i> Orders
+              </a>
+            </li>
+            {% elif session.role == 'seller' %}
+            <li class="nav-item">
+              <a class="nav-link position-relative" href="{{ url_for('messages_inbox') }}">
+                <i class="fas fa-comments"></i> Messages
+                {% if unread_messages > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ unread_messages }}
+                </span>
+                {% endif %}
+              </a>
+            </li>
+            {% elif session.role in ['rider', 'courier'] %}
+            <li class="nav-item">
+              <a class="nav-link position-relative" href="{{ url_for('messages_inbox') }}">
+                <i class="fas fa-comments"></i> Messages
+                {% if unread_messages > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ unread_messages }}
+                </span>
+                {% endif %}
+              </a>
+            </li>
+            {% endif %}
+            
+            <!-- Support Chat Button for all logged-in users -->
+            {% if session.is_support_agent or session.role == 'admin' %}
+            <li class="nav-item">
+              <a class="nav-link text-success position-relative" href="{{ url_for('support_dashboard') }}">
+                <i class="fas fa-headset"></i> Support Dashboard
+                {% if unread_messages > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ unread_messages }}
+                </span>
+                {% endif %}
+              </a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link text-primary" href="{{ url_for('start_support_chat') }}">
+                <i class="fas fa-life-ring"></i> Contact Support
+              </a>
+            </li>
+            {% endif %}
+            
+            <!-- Notification Bell -->
+            {% if session.user_id %}
+            <li class="nav-item">
+              <a class="nav-link position-relative" href="{{ url_for('notifications') }}">
+                <i class="fas fa-bell"></i>
+                <span id="notif-bell-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" {% if not unread_notifications or unread_notifications == 0 %}style="display:none"{% endif %}>
+                  {{ unread_notifications }}
+                </span>
+              </a>
+            </li>
+            {% endif %}
+            
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                <i class="fas fa-user-circle"></i> Account
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <span class="dropdown-item-text"
+                    ><strong>{{ session.role|capitalize }}</strong></span
+                  >
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                {% if session.role == 'customer' %}
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('customer_profile') }}"
+                  >
+                    <i class="fas fa-user me-2"></i>My Profile
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('customer_orders') }}"
+                  >
+                    <i class="fas fa-receipt me-2"></i>My Orders
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                {% endif %}
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                  </a>
+                </li>
+              </ul>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-primary ms-2" href="{{ url_for('register') }}">
+                Get Started
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        <i
+          class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"
+        ></i>
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">{% block content %}{% endblock %}</main>
+
+    <!-- Live Chat Widget -->
+    {% include 'components/live_chat.html' ignore missing %}
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-4">
+            <h5 class="mb-3">
+              <i class="fas fa-shopping-basket"></i> Epicuremart
+            </h5>
+            <p class="text-white-50">
+              Your premium food marketplace with QR-powered delivery tracking.
+            </p>
+            <div class="social-links mt-3">
+              <a href="#" class="me-3"
+                ><i class="fab fa-facebook-f fa-lg"></i
+              ></a>
+              <a href="#" class="me-3"><i class="fab fa-twitter fa-lg"></i></a>
+              <a href="#" class="me-3"
+                ><i class="fab fa-instagram fa-lg"></i
+              ></a>
+            </div>
+          </div>
+          <div class="col-md-4 mb-4">
+            <h5 class="mb-3">Quick Links</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <a href="{{ url_for('browse') }}"
+                  ><i class="fas fa-angle-right me-2"></i>Browse Products</a
+                >
+              </li>
+              <li class="mb-2">
+                <a href="{{ url_for('register') }}"
+                  ><i class="fas fa-angle-right me-2"></i>Become a Seller</a
+                >
+              </li>
+              <li class="mb-2">
+                <a href="#"
+                  ><i class="fas fa-angle-right me-2"></i>Help Center</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="col-md-4 mb-4">
+            <h5 class="mb-3">Categories</h5>
+            <ul class="list-unstyled text-white-50">
+              <li class="mb-2">🧁 Baking Supplies</li>
+              <li class="mb-2">☕ Coffee & Tea</li>
+              <li class="mb-2">🌍 Specialty Foods</li>
+              <li class="mb-2">🥗 Health Foods</li>
+            </ul>
+          </div>
+        </div>
+        <hr class="bg-white opacity-25 my-4" />
+        <div class="text-center text-white-50">
+          <p class="mb-0">
+            &copy; 2025 Epicuremart. All rights reserved. | Built with
+            <i class="fas fa-heart text-danger"></i>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+                    // Navbar scroll effect
+                    window.addEventListener('scroll', function() {
+                        const navbar = document.querySelector('.navbar');
+                        if (window.scrollY > 50) {
+                            navbar.classList.add('navbar-scrolled');
+                        } else {
+                            navbar.classList.remove('navbar-scrolled');
+                        }
+                    });
+
+                    // Auto-dismiss alerts after 5 seconds
+                    document.querySelectorAll('.alert').forEach(function(alert) {
+                        setTimeout(function() {
+                            const bsAlert = new bootstrap.Alert(alert);
+                            bsAlert.close();
+                        }, 5000);
+                    });
+              // Old chat code - only run if not using new conversation template
+              // Check if new conversation template script is already loaded
+              if (!document.getElementById('messageForm')) {
+                  // This is for legacy chat pages - new conversation.html has its own script
+                  let conversationId = {{ conversation.id if conversation else 'null' }};
+                  let lastMessageId = {{ messages[-1].id if conversation and messages|length > 0 else -1 }};
+                  let checkInterval;
+                  
+                  function scrollToBottom() {
+                      const messagesDiv = document.getElementById('chatMessages');
+                      if (messagesDiv) {
+                          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                      }
+                  }
+
+                  function sendMessage(event) {
+                      event.preventDefault();
+
+                      const input = document.getElementById('messageInput');
+                      const message = input.value.trim();
+                      console.log("SENDING:", message);
+                      if (!message) return;
+                      console.log("SENDING:", message);
+                      // Disable input
+                      input.disabled = true;
+
+                      // Send via AJAX
+                      fetch(`/messages/send/${conversationId}`, {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/x-www-form-urlencoded',
+                          },
+                          body: `message_text=${encodeURIComponent(message)}`
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                          if (data.success) {
+                              // Add message to chat
+                              addMessage(data.message);
+                              lastMessageId = data.message.id;
+                              input.value = '';
+                          }
+                      })
+                      .catch(error => {
+                          console.error('Error:', error);
+                          alert('Failed to send message');
+                      })
+                      .finally(() => {
+                          input.disabled = false;
+                          input.focus();
+                      });
+                  }
+
+                  function addMessage(message) {
+                      const messagesDiv = document.getElementById('chatMessages');
+                      const messageDiv = document.createElement('div');
+                      messageDiv.className = `message ${message.is_own ? 'message-own' : 'message-other'}`;
+                      messageDiv.setAttribute('data-message-id', message.id);
+                      messageDiv.innerHTML = `
+                          <div class="message-bubble">
+                              <p class="mb-1">${escapeHtml(message.message_text)}</p>
+                              <small class="message-time">${message.created_at}</small>
+                          </div>
+                      `;
+                      messagesDiv.appendChild(messageDiv);
+                      scrollToBottom();
+                  }
+
+                  function checkNewMessages() {
+                      fetch(`/messages/check-new/${conversationId}?last_id=${lastMessageId}`)
+                          .then(response => response.json())
+                          .then(data => {
+                              if (data.success && data.messages.length > 0) {
+                                  data.messages.forEach(message => {
+                                      addMessage(message);
+                                      lastMessageId = message.id;
+                                  });
+                              }
+                          })
+                          .catch(error => console.error('Error checking messages:', error));
+                  }
+
+                  function escapeHtml(text) {
+                      const div = document.createElement('div');
+                      div.textContent = text;
+                      return div.innerHTML;
+                  }
+
+                  // Initialize
+                  scrollToBottom();
+
+                  // Check for new messages every 3 seconds
+                  // If no conversation, do not run any chat poller
+                  if (typeof conversationId === "undefined" || conversationId === null) {
+                      console.warn("No conversation detected — stopping live message check");
+                  } else {
+                      console.log("Conversation loaded:", conversationId);
+                      checkInterval = setInterval(checkNewMessages, 3000);
+                  }
+
+                  // Cleanup on page unload
+                  window.addEventListener('beforeunload', () => {
+                      clearInterval(checkInterval);
+                  });
+              }
+    </script>
+    {% block extra_js %}{% endblock %}
+    {% if session.user_id %}
+    <script>
+    (function() {
+        const bellBadge = document.getElementById('notif-bell-badge');
+        function pollNotifications() {
+            fetch('/api/notifications/unread-count')
+                .then(r => r.json())
+                .then(data => {
+                    if (!bellBadge) return;
+                    if (data.count > 0) {
+                        bellBadge.textContent = data.count;
+                        bellBadge.style.display = '';
+                    } else {
+                        bellBadge.style.display = 'none';
+                    }
+                })
+                .catch(() => {});
+        }
+        setInterval(pollNotifications, 10000);
+    })();
+    </script>
+    {% endif %}
+  </body>
+</html>

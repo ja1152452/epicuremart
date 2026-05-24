@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-clipboard-list"></i> {{ title }}</h2>
+
+    {% if orders %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Delivery Address</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><strong>{{ order.order_number }}</strong></td>
+                            <td>{{ order.customer.full_name }}</td>
+                            <td>{{ order.customer.phone }}</td>
+                            <td>
+                                {{ order.delivery_address.full_address }}<br>
+                                <small class="text-muted">{{ order.delivery_address.city }} {{ order.delivery_address.postal_code }}</small>
+                            </td>
+                            <td>₱{{ "%.2f"|format(order.total_amount) }}</td>
+                            <td>
+                                <a href="{{ url_for('rider_confirm_delivery', order_id=order.id) }}" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Deliver
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary -->
+            <div class="alert alert-info mt-3">
+                <strong>Total Deliveries:</strong> {{ orders|length }}<br>
+                <strong>Total Amount:</strong> ₱{{ "%.2f"|format(orders|safe_sum(attribute='total_amount')) }}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No orders in your delivery manifest at the moment.
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('rider_dashboard') }}" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}

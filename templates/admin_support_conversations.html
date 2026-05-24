@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Admin - Support Conversations - Epicuremart{% endblock %}
+{% block content %}
+{% include 'components/admin_sidebar.html' %}
+<div class="admin-main-content">
+<div class="container-fluid my-4">
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="fas fa-headset"></i> Support System</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <strong>Total Conversations:</strong>
+            <span class="badge bg-primary float-end">{{ conversations|length }}</span>
+          </div>
+          <div class="mb-3">
+            <strong>Support Agents:</strong>
+            <span class="badge bg-info float-end">{{ support_agents|length }}</span>
+          </div>
+          {% if support_agents %}
+          <hr>
+          <div class="mb-2"><strong>Assigned Agents:</strong></div>
+          <div class="list-group list-group-flush">
+            {% for agent in support_agents %}
+            <div class="list-group-item px-0 py-2">
+              <div>
+                {{ agent.full_name or agent.email }}
+                {% if agent.last_activity and (now - agent.last_activity).total_seconds() < 300 %}
+                <span class="badge bg-success badge-sm ms-1">
+                  <i class="fas fa-circle"></i> Online
+                </span>
+                {% else %}
+                <span class="badge bg-secondary badge-sm ms-1">
+                  Offline
+                </span>
+                {% endif %}
+              </div>
+              {% if agent.last_activity %}
+              <small class="text-muted">Last active: {{ agent.last_activity.strftime('%b %d, %I:%M %p') }}</small>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="fas fa-info-circle"></i> No support agents assigned. 
+            <a href="{{ url_for('manage_support_agents') }}" class="alert-link">Add agents</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h6 class="mb-0"><i class="fas fa-tools"></i> Quick Actions</h6>
+        </div>
+        <div class="card-body">
+          <a href="{{ url_for('manage_support_agents') }}" class="btn btn-sm btn-primary w-100 mb-2">
+            <i class="fas fa-user-cog"></i> Manage Agents
+          </a>
+          <a href="{{ url_for('admin_dashboard') }}" class="btn btn-sm btn-outline-secondary w-100">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-9">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">
+            <i class="fas fa-headset"></i> All Support Conversations (Admin View)
+          </h4>
+          <span class="badge badge-light">{{ conversations|length }} Total</span>
+        </div>
+        <div class="card-body">
+          {% if conversations %}
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Customer</th>
+                  <th>Assigned Agent</th>
+                  <th>Messages</th>
+                  <th>Last Message</th>
+                  <th>Started</th>
+                  <th>Last Activity</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in conversations %}
+                <tr>
+                  <td>
+                    <strong>#{{ item.conversation.id }}</strong>
+                  </td>
+                  <td>
+                    <strong>{{ item.customer.full_name or item.customer.email }}</strong>
+                    <br>
+                    <small class="text-muted">{{ item.customer.email }}</small>
+                    <br>
+                    <span class="badge badge-info">{{ item.customer.role|title }}</span>
+                  </td>
+                  <td>
+                    {% if item.support_agent %}
+                    <strong>{{ item.support_agent.full_name or item.support_agent.email }}</strong>
+                    <br>
+                    <small class="text-muted">{{ item.support_agent.email }}</small>
+                    {% if item.support_agent.last_activity and (now - item.support_agent.last_activity).total_seconds() < 300 %}
+                    <br>
+                    <span class="badge badge-success badge-sm">
+                      <i class="fas fa-circle"></i> Online
+                    </span>
+                    {% else %}
+                    <br>
+                    <span class="badge badge-secondary badge-sm">
+                      <i class="fas fa-circle"></i> Offline
+                    </span>
+                    {% endif %}
+                    {% else %}
+                    <span class="text-muted">Unassigned</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge badge-primary">{{ item.total_messages }}</span>
+                  </td>
+                  <td>
+                    {% if item.last_message %}
+                    <div class="text-truncate" style="max-width: 250px">
+                      <strong>{{ item.last_message.sender.full_name or item.last_message.sender.email }}:</strong>
+                      {{ item.last_message.message_text }}
+                    </div>
+                    {% else %}
+                    <em class="text-muted">No messages yet</em>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <small class="text-muted">
+                      {% if item.created_at %}{{ item.created_at.strftime('%b %d, %Y') }}<br>{{ item.created_at.strftime('%I:%M %p') }}{% else %}N/A{% endif %}
+                    </small>
+                  </td>
+                  <td>
+                    <small class="text-muted">
+                      {% if item.last_message_at %}{{ item.last_message_at.strftime('%b %d, %Y') }}<br>{{ item.last_message_at.strftime('%I:%M %p') }}{% else %}N/A{% endif %}
+                    </small>
+                  </td>
+                  <td>
+                    <a href="{{ url_for('support_conversation', conversation_id=item.conversation.id) }}" 
+                       class="btn btn-sm btn-primary" 
+                       title="View and participate in conversation">
+                      <i class="fas fa-eye"></i> View Chat
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No Support Conversations Yet</h5>
+            <p class="text-muted">
+              When customers contact support, their conversations will appear here.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.badge-sm {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+}
+</style>
+
+<script>
+  // Auto-refresh every 30 seconds
+  setInterval(function () {
+    location.reload();
+  }, 30000);
+</script>
+</div>
+</div>
+{% endblock %}

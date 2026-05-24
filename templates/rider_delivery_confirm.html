@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Confirm Delivery
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="text-center mb-4">Order {{ order.order_number }}</h3>
+                    
+                    <!-- Customer Info -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-user"></i> Customer Information</h5>
+                        <p class="mb-1"><strong>Name:</strong> {{ order.customer.full_name }}</p>
+                        <p class="mb-1"><strong>Phone:</strong> {{ order.customer.phone }}</p>
+                        <p class="mb-0"><strong>Address:</strong> {{ order.delivery_address.full_address }}, {{ order.delivery_address.city }}</p>
+                    </div>
+
+                    <!-- Order Items Summary -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-box me-2"></i>Order Items</h5>
+                        <div class="list-group">
+                            {% for item in order.items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ item.product.name }} x {{ item.quantity }}</span>
+                                    <span class="fw-bold">₱{{ "%.2f"|format(item.price * item.quantity) }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-between mt-2 p-2 bg-light rounded">
+                            <strong>Total Amount:</strong>
+                            <strong class="text-primary">₱{{ "%.2f"|format(order.total_amount) }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Proof of Delivery Upload -->
+                    <div class="mb-4">
+                        <h5 class="text-danger">
+                            <i class="fas fa-camera me-2"></i>Upload Proof of Delivery *
+                        </h5>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Required:</strong> Please upload a photo showing the delivered package or customer receiving the order.
+                        </div>
+                        
+                        <form method="POST" enctype="multipart/form-data" id="deliveryForm">
+                            <div class="mb-3">
+                                <label class="form-label">Take Photo or Upload Image *</label>
+                                <input type="file" 
+                                       name="proof_of_delivery" 
+                                       id="proofPhoto"
+                                       class="form-control" 
+                                       accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                                       capture="environment"
+                                       required>
+                                <small class="form-text text-muted">
+                                    Supported formats: PNG, JPG, JPEG, GIF, WEBP. Max size: 10MB
+                                </small>
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div id="imagePreview" class="mb-3" style="display: none;">
+                                <label class="form-label">Preview:</label>
+                                <div class="text-center">
+                                    <img id="previewImg" src="" class="img-thumbnail" style="max-width: 100%; max-height: 400px;" alt="Preview">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success w-100 btn-lg" id="submitBtn">
+                                <i class="fas fa-check-circle me-2"></i>Confirm Delivery with Proof
+                            </button>
+                        </form>
+                    </div>
+
+                    <a href="{{ url_for('rider_dashboard') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview functionality
+document.getElementById('proofPhoto').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Check file size
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            alert('File size must be less than 10MB');
+            e.target.value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('imagePreview').style.display = 'none';
+    }
+});
+
+// Form validation
+document.getElementById('deliveryForm').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('proofPhoto');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        e.preventDefault();
+        alert('Please upload a proof of delivery photo before confirming.');
+        return false;
+    }
+    
+    // Disable submit button to prevent double submission
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+});
+</script>
+
+<style>
+.img-thumbnail {
+    border: 2px solid #6366f1;
+}
+</style>
+{% endblock %}

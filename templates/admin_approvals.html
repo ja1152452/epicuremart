@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include 'components/admin_sidebar.html' %}
+<div class="admin-main-content">
+<div class="container">
+    <h2 class="mb-4"><i class="fas fa-user-check"></i> Pending User Approvals</h2>
+
+    {% if pending_users %}
+    <div class="row">
+        {% for user in pending_users %}
+        <div class="col-md-12 col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ user.full_name }}</h5>
+                        <span class="badge 
+                            {% if user.role == 'seller' %}bg-primary
+                            {% elif user.role == 'courier' %}bg-info
+                            {% elif user.role == 'rider' %}bg-warning
+                            {% endif %} px-3 py-2">
+                            {{ user.role|capitalize }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- User Information -->
+                    <div class="mb-3">
+                        <p class="mb-1"><strong><i class="fas fa-envelope me-2"></i>Email:</strong> {{ user.email }}</p>
+                        {% if user.phone %}
+                        <p class="mb-1"><strong><i class="fas fa-phone me-2"></i>Phone:</strong> {{ user.phone }}</p>
+                        {% endif %}
+                        {% if user.plate_number %}
+                        <p class="mb-1"><strong><i class="fas fa-car me-2"></i>Plate Number:</strong> {{ user.plate_number }}</p>
+                        {% endif %}
+                        {% if user.vehicle_type %}
+                        <p class="mb-1"><strong><i class="fas fa-motorcycle me-2"></i>Vehicle:</strong> {{ user.vehicle_type|capitalize }}</p>
+                        {% endif %}
+                        <p class="small text-muted mb-0"><i class="fas fa-clock me-2"></i>Registered: {{ user.created_at.strftime('%Y-%m-%d %H:%M') if user.created_at else 'N/A' }}</p>
+                    </div>
+                    
+                    <!-- Verification Documents Section -->
+                    <div class="documents-section">
+                        <h6 class="fw-bold mb-3 text-primary">
+                            <i class="fas fa-file-alt me-2"></i>Verification Documents
+                        </h6>
+                        
+                        {% if user.id_document %}
+                        <div class="mb-3">
+                            <p class="mb-1 fw-semibold"><i class="fas fa-id-card me-2"></i>Valid ID</p>
+                            <a href="{% if user.id_document.startswith('http') %}{{ user.id_document }}{% else %}{{ url_for('static', filename='uploads/' + user.id_document) }}{% endif %}" 
+                               target="_blank" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>View Document
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.role in ['seller', 'courier'] and user.business_permit %}
+                        <div class="mb-3">
+                            <p class="mb-1 fw-semibold"><i class="fas fa-certificate me-2"></i>{% if user.role == 'seller' %}Business Permit{% else %}Business Permit/Registration{% endif %}</p>
+                            <a href="{% if user.business_permit.startswith('http') %}{{ user.business_permit }}{% else %}{{ url_for('static', filename='uploads/' + user.business_permit) }}{% endif %}" 
+                               target="_blank" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>View Document
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.role in ['rider', 'courier'] %}
+                            {% if user.drivers_license %}
+                            <div class="mb-3">
+                                <p class="mb-1 fw-semibold"><i class="fas fa-id-badge me-2"></i>Driver's License</p>
+                                <a href="{% if user.drivers_license.startswith('http') %}{{ user.drivers_license }}{% else %}{{ url_for('static', filename='uploads/' + user.drivers_license) }}{% endif %}" 
+                                   target="_blank" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            {% if user.or_cr %}
+                            <div class="mb-3">
+                                <p class="mb-1 fw-semibold"><i class="fas fa-file-contract me-2"></i>OR/CR</p>
+                                <a href="{% if user.or_cr.startswith('http') %}{{ user.or_cr }}{% else %}{{ url_for('static', filename='uploads/' + user.or_cr) }}{% endif %}" 
+                                   target="_blank" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>View Document
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 mt-4">
+                        <form method="POST" action="{{ url_for('approve_user', user_id=user.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-check me-2"></i>Approve Account
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('reject_user', user_id=user.id) }}" 
+                              onsubmit="return confirm('Are you sure you want to reject and delete this user account?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-times me-2"></i>Reject & Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> No pending approvals at the moment.
+    </div>
+    {% endif %}
+</div>
+</div>
+
+<style>
+.documents-section {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #0d6efd;
+}
+</style>
+{% endblock %}

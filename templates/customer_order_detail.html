@@ -1,0 +1,617 @@
+{% extends "base.html" %} 
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Order {{ order.order_number }}</h2>
+    <a href="{{ url_for('customer_orders') }}" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Order Status Timeline -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Order Status</h5>
+        </div>
+        <div class="card-body">
+          <h4 class="text-center mb-4">
+            <span class="badge badge-status {% if order.status == 'PENDING_PAYMENT' %}bg-warning {% elif order.status == 'READY_FOR_PICKUP' %}bg-info {% elif order.status == 'IN_TRANSIT_TO_RIDER' %}bg-primary {% elif order.status == 'OUT_FOR_DELIVERY' %}bg-primary {% elif order.status == 'DELIVERED' %}bg-success {% else %}bg-secondary{% endif %}">
+              {{ order.status.replace('_', ' ') }}
+            </span>
+          </h4>
+          {% if order.status == 'CANCELLED' and order.cancellation_reason %}
+          <div class="alert alert-danger py-2 mt-2">
+              <i class="fas fa-info-circle me-1"></i><strong>Reason:</strong> {{ order.cancellation_reason }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Order Items -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Items</h5>
+        </div>
+        <div class="card-body">
+          {% for item in order.items %}
+          <div class="d-flex align-items-start mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{ item.product.name }}</h6>
+              <p class="text-muted mb-2">
+                Qty: {{ item.quantity }} × ₱{{ "%.2f"|format(item.price) }}
+              </p>
+
+              {% if order.status == 'DELIVERED' %}
+                {% set existing_review = namespace(found=false, review=none) %}
+                {% for review in item.product.reviews %}
+                  {% if review.user_id == session.user_id and review.order_id == order.id %}
+                    {% set existing_review.found = true %}
+                    {% set existing_review.review = review %}
+                  {% endif %}
+                {% endfor %}
+                
+                {% if existing_review.found %}
+                <div class="mt-2">
+                  <span class="badge bg-success">
+                    <i class="fas fa-check me-1"></i>You reviewed: {{ existing_review.review.rating }} <i class="fas fa-star text-warning"></i>
+                  </span>
+                </div>
+                {% else %}
+                <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#reviewModal{{ item.id }}">
+                  <i class="fas fa-star me-1"></i>Write Review
+                </button>
+                {% endif %}
+              {% endif %}
+            </div>
+            <div class="text-end">
+              <strong>₱{{ "%.2f"|format(item.price * item.quantity) }}</strong>
+            </div>
+          </div>
+          {% endfor %}
+
+          <!-- Order Total -->
+          <div class="pt-3 border-top">
+            <div class="d-flex justify-content-between mb-2">
+              <span>Subtotal:</span>
+              <span>₱{{ "%.2f"|format(order.subtotal if order.subtotal else order.total_amount - (order.delivery_fee if order.delivery_fee else 0)) }}</span>
+            </div>
+            {% if order.delivery_fee %}
+            <div class="d-flex justify-content-between mb-2">
+              <span>Delivery Fee:</span>
+              <span>₱{{ "%.2f"|format(order.delivery_fee) }}</span>
+            </div>
+            {% endif %}
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+              <strong>Total:</strong>
+              <h4 class="mb-0">₱{{ "%.2f"|format(order.total_amount) }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Address -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Delivery Address</h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-0">
+            <strong>{{ order.delivery_address.label }}</strong><br />
+            {{ order.delivery_address.full_address }}<br />
+            {{ order.delivery_address.city }}, {{ order.delivery_address.postal_code }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <!-- QR Code for Delivery Confirmation -->
+      {% if order.status == 'OUT_FOR_DELIVERY' and qr_data %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-qrcode"></i> Delivery Confirmation
+          </h5>
+        </div>
+        <div class="card-body text-center">
+          <div class="qr-code-container">
+            <img src="data:image/png;base64,{{ qr_data }}" alt="Delivery QR Code" class="img-fluid" style="max-width: 250px;" />
+            <p class="mt-3 text-center small text-muted">
+              Show this QR code to the rider upon delivery
+            </p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Order Information -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Order Information</h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-2">
+            <strong>Order Date:</strong><br />
+            {% if order.created_at %}{{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}{% else %}N/A{% endif %}
+          </p>
+          <p class="mb-2">
+            <strong>Shop:</strong><br />
+            {{ order.shop.name }}
+          </p>
+          {% if order.status == 'DELIVERED' %}
+          <div class="alert alert-success mt-3">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Delivered!</strong><br />
+            <small>{% if order.updated_at %}{{ order.updated_at.strftime('%B %d, %Y') }}{% else %}N/A{% endif %}</small>
+          </div>
+          {% endif %}
+          
+          <!-- Chat with Seller Button -->
+          {% if order.status in ['PENDING_PAYMENT', 'READY_FOR_PICKUP', 'DELIVERED'] %}
+          <form method="POST" action="{{ url_for('start_conversation', shop_id=order.shop_id) }}">
+            <button type="submit" class="btn btn-primary w-100 mb-2">
+              <i class="fas fa-comments me-2"></i>Chat with Seller
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Rider Information -->
+      {% if rider_info and order.status in ['OUT_FOR_DELIVERY', 'DELIVERED'] %}
+      <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-motorcycle me-2"></i>Delivery Rider Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-start mb-3">
+            {% if rider_info.profile_picture %}
+            <img src="{% if rider_info.profile_picture.startswith('http') %}{{ rider_info.profile_picture }}{% else %}{{ url_for('static', filename='uploads/' + rider_info.profile_picture) }}{% endif %}" 
+                 alt="Rider Photo" 
+                 class="rounded-circle me-3" 
+                 style="width: 60px; height: 60px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3"
+                 style="width: 60px; height: 60px;">
+              <i class="fas fa-user fa-2x"></i>
+            </div>
+            {% endif %}
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{ rider_info.full_name }}</h6>
+              <p class="text-muted small mb-1">
+                <i class="fas fa-envelope me-1"></i>{{ rider_info.email }}
+              </p>
+              {% if rider_info.phone %}
+              <p class="text-muted small mb-1">
+                <i class="fas fa-phone me-1"></i>{{ rider_info.phone }}
+              </p>
+              {% endif %}
+              
+              <!-- Rider Rating -->
+              {% if rider_info.avg_rating > 0 %}
+              <div class="mt-2">
+                <span class="badge bg-warning text-dark">
+                  <i class="fas fa-star"></i> {{ "%.1f"|format(rider_info.avg_rating) }} 
+                  ({{ rider_info.total_feedbacks }} reviews)
+                </span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- Recent Feedback -->
+          {% if rider_info.recent_feedbacks %}
+          <div class="mt-3 pt-3 border-top">
+            <h6 class="small text-muted mb-2">Recent Feedback:</h6>
+            {% for feedback in rider_info.recent_feedbacks %}
+            <div class="mb-2 small">
+              <span class="text-warning">
+                {% for i in range(feedback.rating) %}<i class="fas fa-star"></i>{% endfor %}
+              </span>
+              {% if feedback.feedback_text %}
+              <p class="mb-0 mt-1 text-muted">{{ feedback.feedback_text }}</p>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          
+          <!-- Chat with Rider Button -->
+          <form method="POST" action="{{ url_for('start_conversation_with_rider', order_id=order.id) }}">
+            <button type="submit" class="btn btn-success w-100 mb-0">
+              <i class="fas fa-motorcycle me-2"></i>Chat with Rider
+            </button>
+          </form>
+          
+          <!-- Rate Rider Button -->
+          {% if order.status == 'DELIVERED' and not has_rider_feedback %}
+          <button class="btn btn-warning btn-sm w-100 mt-2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#riderFeedbackModal">
+            <i class="fas fa-star me-1"></i>Rate Rider
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Courier Information -->
+      {% if courier_info %}
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-truck me-2"></i>Courier Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-start mb-3">
+            {% if courier_info.profile_picture %}
+            <img src="{% if courier_info.profile_picture.startswith('http') %}{{ courier_info.profile_picture }}{% else %}{{ url_for('static', filename='uploads/' + courier_info.profile_picture) }}{% endif %}" 
+                 alt="Courier Photo" 
+                 class="rounded-circle me-3" 
+                 style="width: 60px; height: 60px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3"
+                 style="width: 60px; height: 60px;">
+              <i class="fas fa-user fa-2x"></i>
+            </div>
+            {% endif %}
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{ courier_info.company_name or courier_info.full_name }}</h6>
+              <p class="text-muted small mb-1">
+                <i class="fas fa-envelope me-1"></i>{{ courier_info.email }}
+              </p>
+              {% if courier_info.phone %}
+              <p class="text-muted small mb-1">
+                <i class="fas fa-phone me-1"></i>{{ courier_info.phone }}
+              </p>
+              {% endif %}
+              {% if courier_info.vehicle_type %}
+              <p class="text-muted small mb-0">
+                <i class="fas fa-car me-1"></i>{{ courier_info.vehicle_type }}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- Chat with Courier Button -->
+          <a
+            href="{{ url_for('start_conversation_with_courier', order_id=order.id) }}"
+            class="btn btn-info w-100 mb-2"
+          >
+            <i class="fas fa-truck me-2"></i>Chat with Courier
+          </a>
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Proof of Delivery -->
+      {% if order.proof_of_delivery and order.status == 'DELIVERED' %}
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-camera me-2"></i>Proof of Delivery
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="text-center">
+            <img src="{% if order.proof_of_delivery.startswith('http') %}{{ order.proof_of_delivery }}{% else %}{{ url_for('static', filename='uploads/' + order.proof_of_delivery) }}{% endif %}" 
+                 class="img-fluid rounded border" 
+                 style="max-width: 100%; max-height: 400px; cursor: pointer;"
+                 alt="Proof of Delivery"
+                 data-bs-toggle="modal"
+                 data-bs-target="#proofModal">
+            <p class="text-muted small mt-2 mb-0">
+              <i class="fas fa-info-circle me-1"></i>Click image to view full size
+            </p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Proof of Delivery Modal -->
+{% if order.proof_of_delivery %}
+<div class="modal fade" id="proofModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Proof of Delivery - Order {{ order.order_number }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="{% if order.proof_of_delivery.startswith('http') %}{{ order.proof_of_delivery }}{% else %}{{ url_for('static', filename='uploads/' + order.proof_of_delivery) }}{% endif %}" 
+             class="img-fluid" 
+             alt="Proof of Delivery">
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Review Modals -->
+{% if order.status == 'DELIVERED' %}
+  {% for item in order.items %}
+    {% set existing_review = namespace(found=false) %}
+    {% for review in item.product.reviews %}
+      {% if review.user_id == session.user_id and review.order_id == order.id %}
+        {% set existing_review.found = true %}
+      {% endif %}
+    {% endfor %}
+    
+    {% if not existing_review.found %}
+    <div class="modal fade" id="reviewModal{{ item.id }}" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Review: {{ item.product.name }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form method="POST" action="{{ url_for('add_product_review', product_id=item.product_id) }}" enctype="multipart/form-data">
+            <input type="hidden" name="order_id" value="{{ order.id }}" />
+            <div class="modal-body">
+              <div class="mb-4 text-center">
+                <label class="form-label fw-bold">Your Rating *</label>
+                <div class="rating-input" id="rating{{ item.id }}">
+                  {% for i in range(5, 0, -1) %}
+                  <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}_{{ item.id }}" required />
+                  <label for="star{{ i }}_{{ item.id }}"><i class="fas fa-star"></i></label>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold">Your Review (Optional)</label>
+                <textarea name="review_text" class="form-control" rows="4" placeholder="Share your experience with this product..."></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold">
+                  <i class="fas fa-camera me-2"></i>Add Photos (Optional)
+                </label>
+                <p class="small text-muted mb-3">Upload up to 5 photos of your purchase</p>
+
+                <div class="row g-3">
+                  {% for i in range(1, 6) %}
+                  <div class="col-4">
+                    <div class="image-upload-wrapper">
+                      <input type="file" name="review_image_{{ i }}" id="reviewImage{{ i }}_{{ item.id }}" 
+                             class="image-upload-input" 
+                             accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                             onchange="previewReviewImage(this, 'preview{{ i }}_{{ item.id }}', 'placeholder{{ i }}_{{ item.id }}', 'removeBtn{{ i }}_{{ item.id }}')" />
+
+                      <label for="reviewImage{{ i }}_{{ item.id }}" class="image-upload-label">
+                        <div class="upload-placeholder" id="placeholder{{ i }}_{{ item.id }}">
+                          <i class="fas fa-camera fa-2x mb-2 text-muted"></i>
+                          <p class="mb-0 small text-muted">Add Photo</p>
+                        </div>
+                        <img id="preview{{ i }}_{{ item.id }}" class="image-preview" style="display: none" />
+                      </label>
+                      
+                      <button type="button" class="btn-remove-image" 
+                              onclick="removeReviewImage('reviewImage{{ i }}_{{ item.id }}', 'preview{{ i }}_{{ item.id }}', 'placeholder{{ i }}_{{ item.id }}', 'removeBtn{{ i }}_{{ item.id }}')"
+                              style="display: none"
+                              id="removeBtn{{ i }}_{{ item.id }}">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane me-2"></i>Submit Review
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+<!-- Rider Feedback Modal -->
+{% if order.status == 'DELIVERED' and rider_info and not has_rider_feedback %}
+<div class="modal fade" id="riderFeedbackModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Rate Your Delivery Rider</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('add_rider_feedback', order_id=order.id) }}">
+        <div class="modal-body">
+          <div class="text-center mb-3">
+            {% if rider_info.profile_picture %}
+            <img src="{% if rider_info.profile_picture.startswith('http') %}{{ rider_info.profile_picture }}{% else %}{{ url_for('static', filename='uploads/' + rider_info.profile_picture) }}{% endif %}" 
+                 alt="Rider Photo" 
+                 class="rounded-circle mb-2" 
+                 style="width: 80px; height: 80px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center mb-2"
+                 style="width: 80px; height: 80px;">
+              <i class="fas fa-user fa-3x"></i>
+            </div>
+            {% endif %}
+            <h6>{{ rider_info.full_name }}</h6>
+          </div>
+          
+          <div class="mb-4 text-center">
+            <label class="form-label fw-bold">Your Rating *</label>
+            <div class="rating-input" id="riderRating">
+              {% for i in range(5, 0, -1) %}
+              <input type="radio" name="rating" value="{{ i }}" id="rider_star{{ i }}" required />
+              <label for="rider_star{{ i }}"><i class="fas fa-star"></i></label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Your Feedback (Optional)</label>
+            <textarea name="feedback_text" class="form-control" rows="4" 
+                      placeholder="Share your experience with this rider..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane me-2"></i>Submit Feedback
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<style>
+  .rating-input {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .rating-input input {
+    display: none;
+  }
+
+  .rating-input label {
+    cursor: pointer;
+    font-size: 2.5rem;
+    color: #e2e8f0;
+    transition: color 0.2s ease;
+  }
+
+  .rating-input input:checked ~ label,
+  .rating-input label:hover,
+  .rating-input label:hover ~ label {
+    color: #fbbf24;
+  }
+
+  .image-upload-wrapper {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: visible;
+  }
+
+  .image-upload-input {
+    display: none;
+  }
+
+  .image-upload-label {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    background: white;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .image-upload-label:hover {
+    border-color: #6366f1;
+    background: #f8fafc;
+  }
+
+  .upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #94a3b8;
+  }
+
+  .image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .btn-remove-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    border: 2px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    z-index: 10;
+    padding: 0;
+  }
+
+  .btn-remove-image:hover {
+    background: #dc2626;
+  }
+
+  .badge-status {
+    font-size: 1rem;
+    padding: 0.5rem 1.5rem;
+  }
+</style>
+
+<script>
+  function previewReviewImage(input, previewId, placeholderId, removeBtnId) {
+    const preview = document.getElementById(previewId);
+    const placeholder = document.getElementById(placeholderId);
+    const removeBtn = document.getElementById(removeBtnId);
+
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+        if (placeholder) {
+          placeholder.style.display = "none";
+        }
+        if (removeBtn) {
+          removeBtn.style.display = "flex";
+        }
+      };
+
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function removeReviewImage(inputId, previewId, placeholderId, removeBtnId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const placeholder = document.getElementById(placeholderId);
+    const removeBtn = document.getElementById(removeBtnId);
+
+    input.value = "";
+    preview.src = "";
+    preview.style.display = "none";
+    if (placeholder) {
+      placeholder.style.display = "flex";
+    }
+    if (removeBtn) {
+      removeBtn.style.display = "none";
+    }
+  }
+</script>
+
+{% endblock %}

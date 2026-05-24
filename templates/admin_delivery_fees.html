@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include 'components/admin_sidebar.html' %}
+<div class="admin-main-content">
+<div class="container">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1"><i class="fas fa-truck me-2"></i>Delivery Fees</h2>
+        <p class="text-muted mb-0">Shipping fee is based on the distance between the seller's and customer's island group.</p>
+    </div>
+
+    <!-- Pricing Table -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i>Island Group Pricing</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Seller Location</th>
+                                <th>Customer Location</th>
+                                <th class="text-center">Shipping Fee</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-success">Luzon</span></td>
+                                <td><span class="badge bg-success">Luzon</span></td>
+                                <td class="text-center fw-bold text-success">₱{{ "%.2f"|format(base_fee) }}</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning text-dark">Visayas</span></td>
+                                <td><span class="badge bg-warning text-dark">Visayas</span></td>
+                                <td class="text-center fw-bold text-success">₱{{ "%.2f"|format(base_fee) }}</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Mindanao</span></td>
+                                <td><span class="badge bg-danger">Mindanao</span></td>
+                                <td class="text-center fw-bold text-success">₱{{ "%.2f"|format(base_fee) }}</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><span class="badge bg-success">Luzon</span></td>
+                                <td><span class="badge bg-warning text-dark">Visayas</span></td>
+                                <td class="text-center fw-bold text-warning">₱{{ "%.2f"|format(base_fee + inter_island_fee) }}</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><span class="badge bg-warning text-dark">Visayas</span></td>
+                                <td><span class="badge bg-success">Luzon</span></td>
+                                <td class="text-center fw-bold text-warning">₱{{ "%.2f"|format(base_fee + inter_island_fee) }}</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><span class="badge bg-warning text-dark">Visayas</span></td>
+                                <td><span class="badge bg-danger">Mindanao</span></td>
+                                <td class="text-center fw-bold text-warning">₱{{ "%.2f"|format(base_fee + inter_island_fee) }}</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><span class="badge bg-danger">Mindanao</span></td>
+                                <td><span class="badge bg-warning text-dark">Visayas</span></td>
+                                <td class="text-center fw-bold text-warning">₱{{ "%.2f"|format(base_fee + inter_island_fee) }}</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><span class="badge bg-success">Luzon</span></td>
+                                <td><span class="badge bg-danger">Mindanao</span></td>
+                                <td class="text-center fw-bold text-danger">₱{{ "%.2f"|format(base_fee + inter_island_fee * 2) }}</td>
+                            </tr>
+                            <tr class="table-danger">
+                                <td><span class="badge bg-danger">Mindanao</span></td>
+                                <td><span class="badge bg-success">Luzon</span></td>
+                                <td class="text-center fw-bold text-danger">₱{{ "%.2f"|format(base_fee + inter_island_fee * 2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Rates Card -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Rates</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_update_delivery_fees') }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Base Fee (same island group)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₱</span>
+                                <input type="number" name="base_fee" class="form-control"
+                                       value="{{ base_fee }}" step="0.01" min="0" required>
+                            </div>
+                            <small class="text-muted">Applied when seller and customer are in the same island group.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Inter-Island Add-on (per island group apart)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">+₱</span>
+                                <input type="number" name="inter_island_fee" class="form-control"
+                                       value="{{ inter_island_fee }}" step="0.01" min="0" required>
+                            </div>
+                            <small class="text-muted">Added for each island group of distance (×1 for adjacent, ×2 for Luzon↔Mindanao).</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save me-1"></i>Save Rates
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

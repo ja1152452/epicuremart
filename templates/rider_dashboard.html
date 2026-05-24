@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-motorcycle"></i> Rider Dashboard</h2>
+        <div>
+            <a href="{{ url_for('rider_profile') }}" class="btn btn-info text-white me-2">
+                <i class="fas fa-user-edit me-1"></i>Edit Profile
+            </a>
+            <a href="{{ url_for('rider_change_password') }}" class="btn btn-warning me-2">
+                <i class="fas fa-key me-1"></i>Change Password
+            </a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#pdfPreviewModal">
+                <i class="fas fa-file-pdf me-1"></i>Export Earnings Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Earnings Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-wallet"></i> Total Earnings</h6>
+                    <h3 class="mb-0">₱{{ "%.2f"|format(total_earnings) }}</h3>
+                    <small>From {{ total_deliveries }} deliveries</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-hourglass-half"></i> Pending Earnings</h6>
+                    <h3 class="mb-0">₱{{ "%.2f"|format(pending_earnings) }}</h3>
+                    <small>{{ pending_deliveries }} out for delivery</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-check-circle"></i> Completed</h6>
+                    <h3 class="mb-0">{{ total_deliveries }}</h3>
+                    <small>Total deliveries</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-motorcycle"></i> Active</h6>
+                    <h3 class="mb-0">{{ pending_deliveries }}</h3>
+                    <small>Out for delivery</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings Breakdown Info -->
+    <div class="alert alert-info mb-4">
+        <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Earnings Breakdown</h5>
+        <p class="mb-2">As a rider, you earn <strong>40% of the shipping fee</strong> for each delivery.</p>
+        <p class="mb-0"><strong>Example:</strong> Shipping Fee ₱100 → Courier earns ₱60 | <span class="text-success fw-bold">Rider earns ₱40</span></p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('rider_scan_from_courier') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-qrcode"></i> Scan QR from Courier
+            </a>
+            <a href="{{ url_for('rider_delivery_manifest') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-list"></i> My Delivery Manifest
+            </a>
+        </div>
+    </div>
+
+    <!-- My Deliveries -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Out for Delivery</h5>
+        </div>
+        <div class="card-body">
+            {% if my_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Address</th>
+                            <th>Shipping Fee</th>
+                            <th>Your Earnings (40%)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in my_orders %}
+                        <tr>
+                            <td><strong>{{ order.order_number }}</strong></td>
+                            <td>{{ order.customer.full_name }}<br>
+                                <small>{{ order.customer.phone }}</small>
+                            </td>
+                            <td>{{ order.delivery_address.full_address }}<br>
+                                <small>{{ order.delivery_address.city }}</small>
+                            </td>
+                            <td>₱{{ "%.2f"|format(order.delivery_fee) if order.delivery_fee else 'N/A' }}</td>
+                            <td class="text-success fw-bold">₱{{ "%.2f"|format(order.rider_earnings) if order.rider_earnings else ("%.2f"|format(order.delivery_fee * Decimal('0.4')) if order.delivery_fee else 'N/A') }}</td>
+                            <td>
+                                <a href="{{ url_for('rider_confirm_delivery', order_id=order.id) }}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check"></i> Confirm Delivery
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">Pending Total:</td>
+                            <td class="fw-bold">₱{{ "%.2f"|format(my_orders|safe_sum(attribute='delivery_fee')) }}</td>
+                            <td class="fw-bold text-success">₱{{ "%.2f"|format(my_orders|rider_earnings_sum) }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No active deliveries. Scan a QR code from a courier to receive packages.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Available Orders -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Available from Couriers</h5>
+        </div>
+        <div class="card-body">
+            {% if available_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Courier</th>
+                            <th>Delivery Address</th>
+                            <th>Shipping Fee</th>
+                            <th>Potential Earnings (40%)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in available_orders %}
+                        <tr>
+                            <td><strong>{{ order.order_number }}</strong></td>
+                            <td>{{ order.courier.full_name if order.courier else 'N/A' }}</td>
+                            <td>{{ order.delivery_address.city }}</td>
+                            <td>₱{{ "%.2f"|format(order.delivery_fee) if order.delivery_fee else 'N/A' }}</td>
+                            <td class="text-success">₱{{ "%.2f"|format(order.delivery_fee * Decimal('0.4')) if order.delivery_fee else 'N/A' }}</td>
+                            <td><span class="badge bg-info">{{ order.status.replace('_', ' ') }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No packages available from couriers at the moment.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.card.bg-success, .card.bg-warning, .card.bg-primary, .card.bg-info {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.card.bg-success:hover, .card.bg-warning:hover, .card.bg-primary:hover, .card.bg-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+</style>
+
+<!-- PDF Preview Modal -->
+<div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfPreviewModalLabel"><i class="fas fa-file-pdf me-2 text-danger"></i>Earnings Report Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="pdfPreviewFrame" src="" style="width:100%; height:75vh; border:none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <a href="{{ url_for('rider_earnings_export_pdf') }}" download class="btn btn-success">
+                    <i class="fas fa-download me-1"></i>Save / Download PDF
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('pdfPreviewModal').addEventListener('show.bs.modal', function () {
+        var frame = document.getElementById('pdfPreviewFrame');
+        if (!frame.src || frame.src === window.location.href) {
+            frame.src = "{{ url_for('rider_earnings_export_pdf') }}";
+        }
+    });
+    document.getElementById('pdfPreviewModal').addEventListener('hide.bs.modal', function () {
+        document.getElementById('pdfPreviewFrame').src = '';
+    });
+</script>
+{% endblock %}

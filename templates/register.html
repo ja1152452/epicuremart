@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="fas fa-user-plus fa-3x" style="color: var(--primary);"></i>
+                        </div>
+                        <h2 class="fw-bold mb-2">Create Account</h2>
+                        <p class="text-muted">Join Epicuremart and start your journey</p>
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data" id="registrationForm">
+                        <!-- Step 1: Role Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">I want to register as: *</label>
+                            <select name="role" class="form-select" required id="roleSelect">
+                                <option value="">-- Select Role --</option>
+                                <option value="customer">Buyer - Browse and buy products</option>
+                                <option value="seller">Seller - Sell my products (requires approval)</option>
+                                <option value="courier">Courier Company - Manage deliveries (requires approval)</option>
+                                <option value="rider">Rider - Deliver orders for a courier company (requires approval)</option>
+                            </select>
+                            <small class="form-text text-muted" id="roleInfo"></small>
+                        </div>
+
+                        <!-- ID Upload Section (shown for all users, optional for Buyers) -->
+                        <div class="mb-4 d-none" id="idUploadSection">
+                            <label class="form-label fw-bold">Valid ID Document <span id="idRequiredLabel">*</span></label>
+                            <input type="file" name="id_document" class="form-control" id="idDocumentInput" accept="image/*">
+                            <small class="form-text text-muted" id="idUploadHelp">Upload a valid government-issued ID</small>
+                        </div>
+                        
+                        <!-- Business Permit Section (shown for Seller and Courier) -->
+                        <div class="mb-4 d-none" id="businessPermitSection">
+                            <label class="form-label fw-bold">Business Permit / Registration Document *</label>
+                            <input type="file" name="business_permit" class="form-control" id="businessPermitInput" accept="image/*,application/pdf">
+                            <small class="form-text text-muted" id="businessPermitHelp">Upload your business permit or registration document (PDF, JPG, PNG)</small>
+                        </div>
+                        
+                        <!-- Driver's License and OR/CR Section (shown for Rider/Courier only) -->
+                        <div class="mb-4 d-none" id="driversLicenseSection">
+                            <label class="form-label fw-bold">Driver's License *</label>
+                            <input type="file" name="drivers_license" class="form-control" id="driversLicenseInput" accept="image/*">
+                            <small class="form-text text-muted">Upload your driver's license (Required for Riders/Couriers)</small>
+                        </div>
+                        
+                        <div class="mb-4 d-none" id="orCrSection">
+                            <label class="form-label fw-bold">OR/CR (Official Receipt / Certificate of Registration) *</label>
+                            <input type="file" name="or_cr" class="form-control" id="orCrInput" accept="image/*">
+                            <small class="form-text text-muted">Upload your vehicle's OR/CR (Required for Riders/Couriers)</small>
+                        </div>
+                        
+                        <!-- Vehicle Details Section (shown for Rider/Courier only) -->
+                        <div class="row d-none" id="vehicleDetailsSection">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Plate Number *</label>
+                                <input type="text" name="plate_number" class="form-control" id="plateNumberInput"
+                                       placeholder="ABC 1234">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Vehicle Type *</label>
+                                <select name="vehicle_type" class="form-select" id="vehicleTypeInput">
+                                    <option value="">-- Select Vehicle Type --</option>
+                                    <option value="motorcycle">Motorcycle</option>
+                                    <option value="car">Car</option>
+                                    <option value="van">Van</option>
+                                    <option value="truck">Truck</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Company Name (shown for Courier only) -->
+                        <div class="mb-4 d-none" id="companyNameSection">
+                            <label class="form-label fw-bold">Company Name *</label>
+                            <input type="text" name="company_name" class="form-control" id="companyNameInput"
+                                   placeholder="e.g., J&T Express, Lalamove, NinjaVan">
+                            <small class="form-text text-muted">Enter your courier company name</small>
+                        </div>
+                        
+                        <!-- Courier Company Selection (shown for Rider only) -->
+                        <div class="mb-4 d-none" id="courierCompanySection">
+                            <label class="form-label fw-bold">Select Courier Company *</label>
+                            <select name="courier_id" class="form-select" id="courierCompanySelect">
+                                <option value="">-- Select Courier Company --</option>
+                                {% for courier in couriers %}
+                                <option value="{{ courier.id }}">{{ courier.company_name or courier.full_name }} {% if courier.vehicle_type %}({{ courier.vehicle_type }}){% endif %}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Choose which courier company you will be working with</small>
+                        </div>
+                        
+                        <!-- Name Fields -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">First Name *</label>
+                                <input type="text" name="first_name" class="form-control" 
+                                       placeholder="Juan" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="middle_name" class="form-control" 
+                                       placeholder="Dela">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Last Name *</label>
+                                <input type="text" name="last_name" class="form-control" 
+                                       placeholder="Cruz" required>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email Address *</label>
+                                <input type="email" name="email" class="form-control" 
+                                       placeholder="you@example.com" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" id="phoneLabel">Phone Number *</label>
+                                <input type="tel" name="phone" class="form-control" id="phoneInput"
+                                       inputmode="numeric" pattern="^[0-9]{11}$"
+                                       maxlength="11" minlength="11"
+                                       placeholder="09123456789">
+                                <small class="form-text text-muted" id="phoneHelp">Required for buyers, riders, and couriers</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Address Fields - Philippines API -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Address (Philippines) *</label>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Region *</label>
+                                <select name="region" class="form-select" id="regionSelect" required>
+                                    <option value="">-- Select Region --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Province *</label>
+                                <select name="province" class="form-select" id="provinceSelect" required disabled>
+                                    <option value="">-- Select Province --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Municipality/City *</label>
+                                <select name="municipality" class="form-select" id="municipalitySelect" required disabled>
+                                    <option value="">-- Select City/Municipality --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Barangay *</label>
+                                <select name="barangay" class="form-select" id="barangaySelect" required disabled>
+                                    <option value="">-- Select Barangay --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Postal Code *</label>
+                            <input type="text" name="postal_code" class="form-control" id="postalCodeInput" placeholder="4 digits" required pattern="\d{4}" maxlength="4" readonly>
+                            <small class="form-text text-muted">Auto-filled based on location</small>
+                        </div>
+                        
+                        <!-- Optional Address Details -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Street (Optional)</label>
+                                <input type="text" name="street" class="form-control" 
+                                       placeholder="e.g., Main Street">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Block (Optional)</label>
+                                <input type="text" name="block" class="form-control" 
+                                       placeholder="e.g., 5">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Lot (Optional)</label>
+                                <input type="text" name="lot" class="form-control" 
+                                       placeholder="e.g., 12">
+                            </div>
+                        </div>
+                        
+                        <!-- Password Fields -->
+                        <div class="mb-3">
+                            <label class="form-label">Password *</label>
+                            <div class="input-group">
+                                <input type="password" name="password" class="form-control" id="passwordField"
+                                       placeholder="Minimum 8 characters" required minlength="8">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Confirm Password *</label>
+                            <div class="input-group">
+                                <input type="password" name="confirm_password" class="form-control" id="confirmPasswordField"
+                                       placeholder="Re-enter password" required minlength="8">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                    <i class="fas fa-eye" id="toggleConfirmPasswordIcon"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-danger d-none" id="passwordMismatch">Passwords do not match!</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
+                    </form>
+                    
+                    <div class="text-center">
+                        <p class="text-muted mb-0">
+                            Already have an account? 
+                            <a href="{{ url_for('login') }}" class="fw-bold text-decoration-none">Sign in</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Role selection handling
+document.getElementById('roleSelect').addEventListener('change', function() {
+    const roleInfo = document.getElementById('roleInfo');
+    const idUploadSection = document.getElementById('idUploadSection');
+    const idDocumentInput = document.getElementById('idDocumentInput');
+    const idRequiredLabel = document.getElementById('idRequiredLabel');
+    const idUploadHelp = document.getElementById('idUploadHelp');
+    const businessPermitSection = document.getElementById('businessPermitSection');
+    const businessPermitInput = document.getElementById('businessPermitInput');
+    const driversLicenseSection = document.getElementById('driversLicenseSection');
+    const driversLicenseInput = document.getElementById('driversLicenseInput');
+    const orCrSection = document.getElementById('orCrSection');
+    const orCrInput = document.getElementById('orCrInput');
+    const vehicleDetailsSection = document.getElementById('vehicleDetailsSection');
+    const plateNumberInput = document.getElementById('plateNumberInput');
+    const vehicleTypeInput = document.getElementById('vehicleTypeInput');
+    const companyNameSection = document.getElementById('companyNameSection');
+    const companyNameInput = document.getElementById('companyNameInput');
+    const courierCompanySection = document.getElementById('courierCompanySection');
+    const courierCompanySelect = document.getElementById('courierCompanySelect');
+    const phoneInput = document.getElementById('phoneInput');
+    const phoneLabel = document.getElementById('phoneLabel');
+    const value = this.value;
+    
+    const messages = {
+        'customer': 'Start shopping immediately after email verification. ID upload is optional but recommended for verification.',
+        'seller': 'Requires admin approval, ID, and business permit upload. You\'ll receive an email when approved.',
+        'courier': 'Requires admin approval, ID, driver\'s license, and OR/CR upload. Register your courier company.',
+        'rider': 'Requires admin approval, ID, driver\'s license, and OR/CR upload. Join a courier company to deliver orders.'
+    };
+    
+    roleInfo.textContent = messages[value] || '';
+    
+    // Reset all sections to hidden
+    idUploadSection.classList.add('d-none');
+    idDocumentInput.required = false;
+    businessPermitSection.classList.add('d-none');
+    businessPermitInput.required = false;
+    driversLicenseSection.classList.add('d-none');
+    driversLicenseInput.required = false;
+    orCrSection.classList.add('d-none');
+    orCrInput.required = false;
+    vehicleDetailsSection.classList.add('d-none');
+    plateNumberInput.required = false;
+    vehicleTypeInput.required = false;
+    companyNameSection.classList.add('d-none');
+    companyNameInput.required = false;
+    courierCompanySection.classList.add('d-none');
+    courierCompanySelect.required = false;
+    
+    // Update phone requirement based on role
+    if (value === 'customer' || value === 'rider' || value === 'courier') {
+        phoneInput.required = true;
+        phoneLabel.textContent = 'Phone Number *';
+    } else {
+        phoneInput.required = false;
+        phoneLabel.textContent = 'Phone Number (Optional)';
+    }
+    
+    // Show/hide sections based on role
+    if (value === 'customer') {
+        // Show ID upload for customer but make it optional
+        idUploadSection.classList.remove('d-none');
+        idDocumentInput.required = false;
+        idRequiredLabel.textContent = ' (Optional)';
+        idUploadHelp.textContent = 'Upload a valid government-issued ID for verification (Optional but recommended)';
+    } else if (value === 'seller') {
+        idUploadSection.classList.remove('d-none');
+        idDocumentInput.required = true;
+        idRequiredLabel.textContent = ' *';
+        idUploadHelp.textContent = 'Upload a valid government-issued ID (Required)';
+        businessPermitSection.classList.remove('d-none');
+        businessPermitInput.required = true;
+    } else if (value === 'rider') {
+        idUploadSection.classList.remove('d-none');
+        idDocumentInput.required = true;
+        idRequiredLabel.textContent = ' *';
+        idUploadHelp.textContent = 'Upload a valid government-issued ID (Required)';
+        driversLicenseSection.classList.remove('d-none');
+        driversLicenseInput.required = true;
+        orCrSection.classList.remove('d-none');
+        orCrInput.required = true;
+        vehicleDetailsSection.classList.remove('d-none');
+        plateNumberInput.required = true;
+        vehicleTypeInput.required = true;
+        courierCompanySection.classList.remove('d-none');
+        courierCompanySelect.required = true;
+    } else if (value === 'courier') {
+        // Courier-specific fields only
+        // NO ID document required for couriers
+        // NO Driver's License required for couriers
+        // NO OR/CR required for couriers
+        // NO Plate Number required for couriers
+        // NO Vehicle Type required for couriers
+        
+        businessPermitSection.classList.remove('d-none');
+        businessPermitInput.required = true;
+        companyNameSection.classList.remove('d-none');
+        companyNameInput.required = true;
+    }
+});
+
+// Password visibility toggles
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordField = document.getElementById('passwordField');
+    const icon = document.getElementById('togglePasswordIcon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+
+document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+    const confirmPasswordField = document.getElementById('confirmPasswordField');
+    const icon = document.getElementById('toggleConfirmPasswordIcon');
+    
+    if (confirmPasswordField.type === 'password') {
+        confirmPasswordField.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        confirmPasswordField.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+
+// Password match validation
+document.getElementById('confirmPasswordField').addEventListener('input', function() {
+    const password = document.getElementById('passwordField').value;
+    const confirmPassword = this.value;
+    const mismatchWarning = document.getElementById('passwordMismatch');
+    
+    if (confirmPassword && password !== confirmPassword) {
+        mismatchWarning.classList.remove('d-none');
+    } else {
+        mismatchWarning.classList.add('d-none');
+    }
+});
+
+// Phone number sanitization
+const phoneInputField = document.getElementById('phoneInput');
+if (phoneInputField) {
+    phoneInputField.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+}
+
+// Form validation before submit
+document.getElementById('registrationForm').addEventListener('submit', function(e) {
+    const phoneValue = phoneInputField ? phoneInputField.value.trim() : '';
+    const password = document.getElementById('passwordField').value;
+    const confirmPassword = document.getElementById('confirmPasswordField').value;
+
+    if (phoneValue && phoneValue.length !== 11) {
+        e.preventDefault();
+        alert('Phone number must be exactly 11 digits.');
+        phoneInputField.focus();
+        return false;
+    }
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+        return false;
+    }
+});
+</script>
+
+<script>
+(function () {
+    const BASE = 'https://psgc.gitlab.io/api';
+
+    async function fetchJSON(url) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+    }
+
+    function setLoading(select, msg) {
+        select.innerHTML = `<option value="">${msg}</option>`;
+        select.disabled = true;
+    }
+
+    function resetSelect(select, placeholder) {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        select.disabled = true;
+    }
+
+    // value = name, dataset.code = psgc code
+    function populate(select, items, placeholder) {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        items.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.name;          // save name to DB
+            opt.dataset.code = item.code;   // keep code for next API call
+            opt.textContent = item.name;
+            select.appendChild(opt);
+        });
+        select.disabled = false;
+    }
+
+    const regionSel   = document.getElementById('regionSelect');
+    const provinceSel = document.getElementById('provinceSelect');
+    const citySel     = document.getElementById('municipalitySelect');
+    const barangaySel = document.getElementById('barangaySelect');
+    const postalInput = document.getElementById('postalCodeInput');
+
+    // Load regions on page load
+    (async () => {
+        setLoading(regionSel, 'Loading regions...');
+        try {
+            const regions = await fetchJSON(`${BASE}/regions/`);
+            populate(regionSel, regions, '-- Select Region --');
+        } catch (e) {
+            regionSel.innerHTML = '<option value="">Failed to load. Reload page.</option>';
+        }
+    })();
+
+    regionSel.addEventListener('change', async function () {
+        resetSelect(provinceSel, '-- Select Province --');
+        resetSelect(citySel, '-- Select City/Municipality --');
+        resetSelect(barangaySel, '-- Select Barangay --');
+        postalInput.value = '';
+
+        const code = this.selectedOptions[0]?.dataset.code;
+        if (!code) return;
+
+        setLoading(provinceSel, 'Loading provinces...');
+        try {
+            const provinces = await fetchJSON(`${BASE}/regions/${code}/provinces/`);
+            if (provinces.length) {
+                populate(provinceSel, provinces, '-- Select Province --');
+            } else {
+                // Region with no provinces (e.g. NCR) — load cities directly
+                provinceSel.innerHTML = '<option value="NCR">Metro Manila / N/A</option>';
+                provinceSel.disabled = false;
+                const cities = await fetchJSON(`${BASE}/regions/${code}/cities-municipalities/`);
+                populate(citySel, cities, '-- Select City/Municipality --');
+            }
+        } catch (e) {
+            provinceSel.innerHTML = '<option value="">Failed to load. Try again.</option>';
+        }
+    });
+
+    provinceSel.addEventListener('change', async function () {
+        resetSelect(citySel, '-- Select City/Municipality --');
+        resetSelect(barangaySel, '-- Select Barangay --');
+        postalInput.value = '';
+
+        const code = this.selectedOptions[0]?.dataset.code;
+        if (!code) return;
+
+        setLoading(citySel, 'Loading cities...');
+        try {
+            const cities = await fetchJSON(`${BASE}/provinces/${code}/cities-municipalities/`);
+            populate(citySel, cities, '-- Select City/Municipality --');
+        } catch (e) {
+            citySel.innerHTML = '<option value="">Failed to load. Try again.</option>';
+            citySel.disabled = false;
+        }
+    });
+
+    citySel.addEventListener('change', async function () {
+        resetSelect(barangaySel, '-- Select Barangay --');
+        postalInput.value = '';
+
+        const code = this.selectedOptions[0]?.dataset.code;
+        if (!code) return;
+
+        setLoading(barangaySel, 'Loading barangays...');
+        try {
+            const barangays = await fetchJSON(`${BASE}/cities-municipalities/${code}/barangays/`);
+            populate(barangaySel, barangays, '-- Select Barangay --');
+            // Use first 4 digits of city code as postal code
+            postalInput.value = code.substring(0, 4);
+        } catch (e) {
+            barangaySel.innerHTML = '<option value="">Failed to load. Try again.</option>';
+            barangaySel.disabled = false;
+        }
+    });
+}());
+</script>
+{% endblock %}
