@@ -627,7 +627,7 @@ def _send_email_task(app, to, subject, body):
 
 def send_email(to, subject, body):
     """Dispatch email in background thread — returns immediately"""
-    _mail_executor.submit(_send_email_task, app._get_current_object(), to, subject, body)
+   _mail_executor.submit(_send_email_task, app, to, subject, body)
     return True
 
 
